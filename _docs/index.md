@@ -18,3 +18,7 @@ _(none)_
 ## Complete
 - [시음 노트(Tasting Note) 블로그 카테고리 — nihonshu 상세 + AI autofill](./complete/2026-07-06/2026-07-06-tasting-note-plan.md) — `complete` · 2026-07-06 · team-run (Leader+FE+BE+C-advisory+UIUX). music 카테고리 미러, Contract 11필드 SSOT, Designer 4명(겹침 0). base `fix/blog-hydration-418`@cf51e44.
 - [블로그 SSR↔CSR 하이드레이션 불일치(#418) 감사 + 수정](./complete/2026-06-29/2026-06-29-blog-hydration-mismatch-audit-plan.md) — `complete` · 2026-06-29 · 범인=AnimatedThemeToggler(테마 기반 아이콘). 픽스+하드닝+sweep 하니스+CI 게이트, sweep 80/80, prod 검증. [diagram](./complete/2026-06-29/2026-06-29-blog-hydration-mismatch-audit-plan.visual.html)
+
+## Deprecated
+- [TravelMap — diary 인터랙티브 루트 지도](./deprecated/2026-08-18-travel-map.md) — `deprecated` · 2026-10-01 폐기 · 여행 기록은 pic-blog 로 이관. prd/blog 에서 revert(`ea90b25`). winding·지오코딩 오매칭·원문 데이터 정정 등 pic-blog 참고용으로 보관
+- [일본 일주 diary 지도 playground](./deprecated/2026-08-16-japan-trip-map.md) — `deprecated` · 2026-10-01 폐기 · 선행 기능과 함께 미착수 폐기
