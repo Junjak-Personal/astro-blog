@@ -41,6 +41,11 @@ const SCSS_Logger = {
 export default defineConfig({
   // Enable React to support React JSX components.
   site: 'https://www.jun-devlog.win',
+  redirects: {
+    '/project/ai-tetris': '/playground/ai-tetris',
+    '/project/sake-slide1': '/playground/sake-slide1',
+    '/project/sake-slide2': '/playground/sake-slide2',
+  },
   // Astro 7 changed the default to 'jsx', which drops whitespace between inline
   // elements. Pinned to the pre-v7 lossless behaviour; switching to 'jsx' needs a
   // visual pass over the posts first.
