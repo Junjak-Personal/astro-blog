@@ -1,9 +1,9 @@
 import { Moon, Sun } from 'lucide-react';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
 
 import { cn } from '@/lib/utils';
-import { setTheme } from '@/store/system';
+import { $theme, setTheme } from '@/store/system';
 
 interface AnimatedThemeTogglerProps
   extends React.ComponentPropsWithoutRef<'button'> {
@@ -16,6 +16,15 @@ export function AnimatedThemeToggler({
   ...props
 }: AnimatedThemeTogglerProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const syncTheme = () => {
+      $theme.set(document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    };
+    syncTheme();
+    document.addEventListener('astro:page-load', syncTheme);
+    return () => document.removeEventListener('astro:page-load', syncTheme);
+  }, []);
 
   const toggleTheme = useCallback(async () => {
     if (!buttonRef.current)

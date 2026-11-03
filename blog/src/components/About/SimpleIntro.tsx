@@ -39,8 +39,8 @@ export function SimpleIntro() {
           )} profile-wrapper`}
         >
           <div className="flex justify-center">
-            <Avatar className="size-52 pt-4  bg-zinc-200 dark:bg-zinc-800">
-              <AvatarImage src={profileImg.src} alt="ProfileIMG" />
+            <Avatar className="size-52 bg-zinc-200 dark:bg-zinc-800">
+              <AvatarImage src={profileImg.src} alt="서점에서 책을 읽는 윤준현" className="object-cover scale-150 origin-[50%_60%]" />
               <AvatarFallback>MY</AvatarFallback>
             </Avatar>
           </div>
@@ -49,7 +49,7 @@ export function SimpleIntro() {
             Yoon JunHyeon
           </div>
           <div className="desc text-zinc-500 dark:text-zinc-400">
-            Frontend Developer
+            Frontend Developer · Team Lead
           </div>
           <div className="desc text-zinc-500 dark:text-zinc-400">
             Currently - QESG

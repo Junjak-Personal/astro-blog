@@ -20,6 +20,8 @@ import {
 
 export function Chronicle() {
   const [isOpen, setIsOpen] = React.useState<StringKeyType<boolean>>({
+    qesgTeamLead: false,
+    qesgManager: false,
     free: false,
     twoz3rd: false,
     twoz2nd: false,
@@ -57,11 +59,20 @@ export function Chronicle() {
       <Timeline>
         <TimelineItem status="done">
 
-          <TimelineHeading>QESG 매니저</TimelineHeading>
+          <TimelineHeading>QESG 개발팀 팀 리더</TimelineHeading>
           <TimelineDot status="current" />
           <TimelineLine done />
           <TimelineContent>
-            <QesgTimeline isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <QesgTimeline role="team-lead" isOpen={isOpen} handleOpenChange={handleOpenChange} />
+
+          </TimelineContent>
+        </TimelineItem>
+        <TimelineItem status="done">
+          <TimelineHeading>QESG 매니저</TimelineHeading>
+          <TimelineDot status="default" />
+          <TimelineLine done />
+          <TimelineContent>
+            <QesgTimeline role="manager" isOpen={isOpen} handleOpenChange={handleOpenChange} />
 
           </TimelineContent>
         </TimelineItem>

@@ -1,12 +1,11 @@
-import type { ProjectInfo, TechIconType } from '@/types/commonType';
+import type { ProjectInfo } from '@/types/commonType';
 import { useStore } from '@nanostores/react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { TechIcon } from '@/components/About/TechStackComp/TechIcon';
 import { cn } from '@/lib/utils';
 import { srcSet, variant } from '@/utils/imageVariant';
 import { $theme } from '@/store/system';
 import getTechIcons from '@/utils/getTechIcons';
-import { Separator } from '../ui/separator';
 
 interface EachArticlesProps {
   frontmatter: ProjectInfo;
@@ -15,11 +14,7 @@ interface EachArticlesProps {
 
 const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url }) => {
   const theme = useStore($theme);
-  const [techStacks, setTechStacks] = useState<TechIconType[]>([]);
-
-  useEffect(() => {
-    setTechStacks(getTechIcons(frontmatter.techStacks ?? [], theme));
-  }, [theme, frontmatter]);
+  const techStacks = getTechIcons(frontmatter.techStacks ?? [], theme);
 
   return (
     <figure
@@ -67,14 +62,20 @@ const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url }) => {
               ))}
             </p>
 
-            <Separator className="mb-2" />
             <div className="tech-stack-wrapper">
               <div className="tech-stack-label">
-                Tech Stack:
+                Tech Stack
               </div>
               <div className="tech-stack-list">
                 {techStacks.map((tech) => (
-                  <TechIcon key={`${frontmatter.title}-${tech.techName}`} iconUrl={tech.iconUrl} techName={tech.techName} />
+                  <TechIcon
+                    key={`${frontmatter.title}-${tech.techName}`}
+                    iconUrl={tech.iconUrl}
+                    techName={tech.techName}
+                    backgroundSize="size-7 shrink-0"
+                    iconSize="size-5 object-contain"
+                    hoverSize="p-1 text-sm"
+                  />
                 ))}
               </div>
 

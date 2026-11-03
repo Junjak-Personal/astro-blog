@@ -23,7 +23,7 @@ export function UseTools() {
     },
     {
       title: 'AI',
-      items: ['Perflexity: (Daily, Common)', 'Claude Code (Dev)', 'Gemini (Dev)', 'Codex (Dev) '],
+      items: ['Claude / Claude Code', 'ChatGPT', 'Codex', 'Hermes', 'Gemini', 'Perplexity'],
     },
     {
       title: 'Text Editor',

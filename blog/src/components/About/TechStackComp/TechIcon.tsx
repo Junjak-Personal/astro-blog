@@ -36,7 +36,7 @@ export function TechIcon({ iconUrl, techName, backgroundSize, iconSize, hoverSiz
    ${backgroundSize || 'w-16 h-16'}   bg-neutral-50 dark:bg-neutral-800 rounded-md shadow-md`}
         whileHover={{ scale: 1.2 }}
       >
-        <img src={iconUrl} className={iconSize || 'w-12 h-12'} alt={techName} loading="lazy" />
+        <img src={iconUrl} className={`${iconSize || 'w-12 h-12'} object-contain`} alt={techName} loading="lazy" />
       </motion.div>
 
       <motion.div
