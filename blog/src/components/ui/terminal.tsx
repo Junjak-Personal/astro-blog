@@ -1,6 +1,7 @@
+import type { MotionProps } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { motion, type MotionProps } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
 
 interface AnimatedSpanProps extends MotionProps {
   children: React.ReactNode;
@@ -14,11 +15,12 @@ export function AnimatedSpan({
   className,
   ...props
 }: AnimatedSpanProps) {
+  const reducedMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: -5 }}
+      initial={reducedMotion ? false : { opacity: 0, y: -5 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: delay / 1000 }}
+      transition={{ duration: reducedMotion ? 0 : 0.25, delay: reducedMotion ? 0 : delay / 1000 }}
       className={cn('grid text-sm font-normal tracking-tight', className)}
       {...props}
     >
@@ -34,6 +36,7 @@ interface TypingAnimationProps extends MotionProps {
   delay?: number;
   text?: string;
   as?: React.ElementType;
+  onComplete?: () => void;
 }
 
 export function TypingAnimation({
@@ -43,52 +46,52 @@ export function TypingAnimation({
   duration = 60,
   delay = 0,
   as: Component = 'span',
+  onComplete,
   ...props
 }: TypingAnimationProps) {
-  const content = text || children;
+  const content = text ?? children ?? '';
+  const reducedMotion = useReducedMotion();
 
-  const MotionComponent = motion.create(Component, {
-    forwardMotionProps: true,
-  });
+  const MotionComponent = useMemo(() => motion.create(Component, { forwardMotionProps: true }), [Component]);
 
   const [displayedText, setDisplayedText] = useState<string>('');
-  const [started, setStarted] = useState(false);
-  const elementRef = useRef<HTMLElement | null>(null);
+  const completionRef = useRef(onComplete);
 
   useEffect(() => {
-    const startTimeout = setTimeout(() => {
-      setStarted(true);
-    }, delay);
-    return () => clearTimeout(startTimeout);
-  }, [delay]);
+    completionRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
-    if (!started)
+    if (reducedMotion) {
+      completionRef.current?.();
       return;
+    }
 
     let i = 0;
-    const typingEffect = setInterval(() => {
-      if (i < content.length) {
-        setDisplayedText(content.substring(0, i + 1));
+    let typingEffect: ReturnType<typeof setInterval> | undefined;
+    const startTimeout = setTimeout(() => {
+      typingEffect = setInterval(() => {
         i++;
-      }
-      else {
-        clearInterval(typingEffect);
-      }
-    }, duration);
+        setDisplayedText(content.substring(0, i));
+        if (i >= content.length) {
+          clearInterval(typingEffect);
+          completionRef.current?.();
+        }
+      }, duration);
+    }, delay);
 
     return () => {
+      clearTimeout(startTimeout);
       clearInterval(typingEffect);
     };
-  }, [content, duration, started]);
+  }, [content, delay, duration, reducedMotion]);
 
   return (
     <MotionComponent
-      ref={elementRef}
-      className={cn('text-sm font-normal tracking-tight', className)}
+      className={cn('inline-block min-h-[1.5em] text-sm font-normal tracking-tight', className)}
       {...props}
     >
-      {displayedText}
+      {reducedMotion ? content : displayedText}
     </MotionComponent>
   );
 }
@@ -102,7 +105,7 @@ export function Terminal({ children, className }: TerminalProps) {
   return (
     <div
       className={cn(
-        'z-0 h-full max-h-[400px] w-full max-w-lg rounded-xl border border-border bg-background',
+        'z-0 w-full max-w-lg rounded-xl border border-border bg-background',
         className,
       )}
     >

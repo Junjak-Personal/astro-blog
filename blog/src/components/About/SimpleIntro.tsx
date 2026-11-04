@@ -49,7 +49,7 @@ export function SimpleIntro() {
             Yoon JunHyeon
           </div>
           <div className="desc text-zinc-500 dark:text-zinc-400">
-            Frontend Developer · Team Lead
+            Software Developer · Team Lead
           </div>
           <div className="desc text-zinc-500 dark:text-zinc-400">
             Currently - QESG
@@ -57,22 +57,17 @@ export function SimpleIntro() {
           <div className="flex items-center justify-center">
             <Button variant="ghost" size="icon" asChild>
               <a href="https://github.com/JunjaK" aria-label="GitHub">
-                <Icon icon="mingcute:github-fill" className="icon text-lg ml-1 text-gray-700 dark:text-gray-300" />
-              </a>
-            </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <a href="https://www.linkedin.com/in/junjak-063081213" aria-label="LinkedIn">
-                <Icon icon="mingcute:linkedin-fill" className="icon text-lg ml-1 text-gray-700 dark:text-gray-300" />
+                <Icon icon="mingcute:github-fill" className="icon size-5 shrink-0 text-gray-700 dark:text-gray-300" />
               </a>
             </Button>
             <Button variant="ghost" size="icon" asChild>
               <a href="mailto:haring157@gmail.com" aria-label="Email">
-                <Icon icon="mingcute:mail-fill" className="icon text-lg ml-1 text-gray-700 dark:text-gray-300" />
+                <Icon icon="mingcute:mail-fill" className="icon size-5 shrink-0 text-gray-700 dark:text-gray-300" />
               </a>
             </Button>
             <Button variant="ghost" size="icon" asChild>
-              <a href="https://silken-physician-30f.notion.site/1adc06a048a580dc97cfdb73e22b1393?pvs=74" aria-label="Resume">
-                <Icon icon="qlementine-icons:resume-16" className="icon text-lg ml-1 text-gray-700 dark:text-gray-300" />
+              <a href="https://memo.jun-devlog.win/ext/01M6KQ3X9KXJGEVP1PPYZC5NKX" aria-label="Resume">
+                <Icon icon="mingcute:profile-fill" className="icon size-5 shrink-0 text-gray-700 dark:text-gray-300" />
               </a>
             </Button>
           </div>
@@ -86,7 +81,7 @@ export function SimpleIntro() {
             animate="visible"
             exit="hidden"
           >
-            Hi 👋, I'm JunHyeon
+            Hi, I'm JunHyeon
           </motion.h3>
           <motion.div
             initial="hidden"
@@ -97,7 +92,7 @@ export function SimpleIntro() {
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300 ">
-              저는 게임과 서브컬쳐, 그리고 일본 여행을 좋아하는 💻 웹 프론트 개발자입니다.
+              저는 게임과 서브컬쳐, 그리고 일본 여행을 좋아하는 소프트웨어 개발자입니다.
             </p>
           </motion.div>
 
@@ -110,16 +105,13 @@ export function SimpleIntro() {
             transition={{ delay: 0.6, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              다른 개발 영역과는 다르게 내가 요청한 것이 즉각적으로 🔍UI/UX의 형태로
+              직접 만든 기능이 화면에서 바로 반응하는 재미에 프론트엔드 개발을 시작했습니다.
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              반응하는 것에 재미를 느껴 웹 프론트 엔드의 길을 걷기로 하였고,
+              AI 시대에 개발 영역 간의 경계가 허물어지면서,
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              쉴새 없이 변화하는 개발 환경 그리고 새로운 기술들에 매력을 느껴
-            </p>
-            <p className="desc text-zinc-700 dark:text-zinc-300">
-              웹 프론트 개발자의 길을 이어가고 있습니다.
+              현재는 프론트엔드뿐 아니라 백엔드, 인프라, 설계까지 맡고 있습니다.
             </p>
           </motion.div>
 
@@ -132,7 +124,7 @@ export function SimpleIntro() {
             transition={{ delay: 1, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              다양하고 새로운 기술을 사용하여 ⌨ 생산성을 올리는 것에 큰 관심을 가지고 있고,
+              다양하고 새로운 기술을 사용하여 생산성을 올리는 것에 큰 관심을 가지고 있고,
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
               여러 아티클, 유튜브 등을 보며 최신 기술 동향을 파악하려고 노력하고 있습니다.
@@ -148,7 +140,10 @@ export function SimpleIntro() {
             transition={{ delay: 1.4, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              최근에는 AI 활용한 코딩에서 어떻게 생산성을 더 올릴 수 있을 지 고민하고 있습니다.
+              최근에는 멀티 에이전트 오케스트레이션과 저에게 맞는 하네스 구조를 정착시키는 데 관심을 두고,
+            </p>
+            <p className="desc text-zinc-700 dark:text-zinc-300">
+              개인 프로젝트를 꾸준히 진행하는 데 힘쓰고 있습니다.
             </p>
           </motion.div>
 

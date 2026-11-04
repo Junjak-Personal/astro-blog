@@ -28,12 +28,9 @@ function lozadInit() {
 lozadInit();
 document.addEventListener('astro:after-swap', lozadInit);
 </script>
-<!-- SPA navigation: reveal home #intro immediately (skip 4s terminal delay) -->
+<!-- Keep scroll progress available after navigation. -->
 <script>
-document.addEventListener('astro:after-swap', () => {
-  const intro = document.getElementById('intro');
-  if (intro) intro.classList.add('visible');
-
+document.addEventListener('astro:page-load', () => {
   const scrollAnim = document.querySelector('.scroll-animation');
   const container = document.querySelector('.container');
   if (scrollAnim && container && window.innerHeight < (container as HTMLElement).offsetHeight + 224) {

@@ -30,11 +30,6 @@ export default function Footer() {
             </a>
           </Button>
           <Button variant="ghost" size="icon" asChild>
-            <a href="https://www.linkedin.com/in/junjak-063081213" aria-label="linkedin">
-              <Icon icon="mingcute:linkedin-fill" className="icon text-lg text-gray-500" />
-            </a>
-          </Button>
-          <Button variant="ghost" size="icon" asChild>
             <a href="mailto:haring157@gmail.com" aria-label="mailto">
               <Icon icon="mingcute:mail-fill" className="icon text-lg text-gray-500" />
             </a>

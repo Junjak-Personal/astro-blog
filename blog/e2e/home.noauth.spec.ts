@@ -68,12 +68,33 @@ test.describe('Home page', () => {
     await page.waitForTimeout(2000);
 
     // BoxReveal content should be visible
-    const introContent = page.getByText('안녕하세요, 여기는 저의 개인 블로그입니다', { exact: false });
+    const introContent = page.getByText('안녕하세요, 여기는 저의 개인 블로그입니다.', { exact: false });
     await expect(introContent.first()).toBeVisible({ timeout: 10000 });
 
-    // "포스트 바로가기" button
-    const blogButton = page.getByText('포스트 바로가기');
+    // Primary content destinations
+    const blogButton = page.getByTestId('home-blog-link');
     await expect(blogButton).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('home-project-link')).toHaveAttribute('href', '/project/');
+    await expect(page.getByTestId('home-playground-link')).toHaveAttribute('href', '/playground/');
+    await expect(blogButton.locator('svg')).toHaveCount(1);
+  });
+
+  test('reveals content after the terminal finishes preparing', async ({ page }) => {
+    const content = page.locator('[data-home-content]');
+    const terminal = page.getByTestId('home-terminal-panel');
+
+    await expect(content).toBeHidden();
+    await expect(terminal.getByText('✔ Verifying framework, Astro & React.')).toHaveCount(0);
+    await expect(terminal.locator('code > :last-child')).toHaveText('Success! Dev-Blog loaded completed.', { timeout: 10000 });
+    await expect(content).toBeVisible();
+  });
+
+  test('shows completed content without waiting when motion is reduced', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.reload();
+
+    await expect(page.locator('[data-home-content]')).toBeVisible();
+    await expect(page.getByTestId('home-terminal-panel').locator('code > :last-child')).toHaveText('Success! Dev-Blog loaded completed.');
   });
 });
 
@@ -89,7 +110,7 @@ test.describe('Home page - mobile', () => {
     await expect(introText.first()).toBeVisible({ timeout: 10000 });
 
     // Blog button should be accessible
-    const blogButton = page.getByText('포스트 바로가기');
+    const blogButton = page.getByTestId('home-blog-link');
     await blogButton.scrollIntoViewIfNeeded();
     await expect(blogButton).toBeVisible({ timeout: 10000 });
   });

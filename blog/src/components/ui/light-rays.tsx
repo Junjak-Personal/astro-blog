@@ -1,5 +1,6 @@
+import type { CSSProperties } from 'react';
 import { motion } from 'motion/react';
-import { type CSSProperties, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -98,7 +99,20 @@ export function LightRays({
   const cycleDuration = Math.max(speed, 0.1);
 
   useEffect(() => {
-    setRays(createRays(count, cycleDuration));
+    const media = window.matchMedia('(pointer: fine) and (min-width: 768px)');
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const preparedRays = createRays(count, cycleDuration);
+    const update = () => setRays(media.matches && !document.hidden && !motionPreference.matches ? preparedRays : []);
+    const frame = requestAnimationFrame(update);
+    media.addEventListener('change', update);
+    motionPreference.addEventListener('change', update);
+    document.addEventListener('visibilitychange', update);
+    return () => {
+      cancelAnimationFrame(frame);
+      media.removeEventListener('change', update);
+      motionPreference.removeEventListener('change', update);
+      document.removeEventListener('visibilitychange', update);
+    };
   }, [count, cycleDuration]);
 
   return (

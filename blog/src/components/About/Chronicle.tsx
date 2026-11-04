@@ -44,15 +44,17 @@ export function Chronicle() {
         Timeline
       </motion.h2>
       <p className="text-muted-foreground mb-4">
-        저는 주로 Vue.js를 사용하여 개발해온 5년차 프론트엔드 개발자입니다.
+        Vue.js를 주로 사용해 온 프론트엔드 개발자였지만,
         <br />
-        업무 외적으로 사이드 프로젝트를 통하여 React, Astro 등의 새로운 라이브러리들을 경험해보고 있습니다.
+        AI 시대에 개발 영역 간의 경계가 허물어지면서 현재는 백엔드, 인프라, 설계까지 담당하고 있습니다.
+        <br />
+        업무 외적으로는 Astro를 활용한 정적 페이지와 Flutter를 활용한 앱 개발 등 다양한 개인 프로젝트를 진행하고 있습니다.
         <br />
         이하 현재까지의 경력사항 및 진행한 프로젝트입니다.
         <br />
         더 자세한 사항은
         {' '}
-        <a href="https://silken-physician-30f.notion.site/1adc06a048a580dc97cfdb73e22b1393?pvs=4" target="_blank" rel="noopener noreferrer" className="resume-link ">이력서</a>
+        <a href="https://memo.jun-devlog.win/ext/01M6KQ3X9KXJGEVP1PPYZC5NKX" target="_blank" rel="noopener noreferrer" className="resume-link ">이력서</a>
         를 참고해주세요.
       </p>
 

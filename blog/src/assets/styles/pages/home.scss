@@ -1,24 +1,20 @@
 @use "../variables" as *;
 
 #intro {
-  display: none;
-  opacity: 0;
-
-  &.visible {
-    display: unset;
-    animation: intro-reveal 0.6s ease-out forwards;
-  }
-
   .intro-wrapper {
     position: relative;
     z-index: 2;
+    animation: intro-reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 
     .icon {
       font-size: 1rem;
     }
   }
-  .on-spacer {
-    height: 4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #intro .intro-wrapper {
+    animation: none;
   }
 }
 

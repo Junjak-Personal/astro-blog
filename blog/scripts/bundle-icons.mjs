@@ -7,6 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
 const ICONS = {
+  mdi: ['web', 'laptop', 'gamepad-variant', 'beach', 'music', 'movie-open'],
   mingcute: [
     'document-2-line',
     'down-line',
@@ -14,6 +15,7 @@ const ICONS = {
     'left-line',
     'right-line',
     'github-fill',
+    'profile-fill',
     'linkedin-fill',
     'mail-fill',
     'git-branch-line',
@@ -23,7 +25,7 @@ const ICONS = {
   tabler: ['minus', 'plus', 'rotate'],
   'svg-spinners': ['bars-rotate-fade'],
   'qlementine-icons': ['resume-16'],
-  'material-symbols': ['visibility-off', 'center-focus-strong'],
+  'material-symbols': ['visibility-off', 'center-focus-strong', 'article-outline', 'work-outline', 'science-outline'],
 };
 
 const lines = [
@@ -34,7 +36,9 @@ const lines = [
 let totalIcons = 0;
 
 for (const [prefix, names] of Object.entries(ICONS)) {
-  const jsonPath = require.resolve(`@iconify-json/${prefix}/icons.json`);
+  const jsonPath = prefix === 'mdi'
+    ? join(__dirname, '..', 'src', 'assets', 'icons', 'mdi-home.json')
+    : require.resolve(`@iconify-json/${prefix}/icons.json`);
   const data = JSON.parse(readFileSync(jsonPath, 'utf-8'));
 
   for (const name of names) {

@@ -11,41 +11,48 @@ export function UseTools() {
   const tools: ToolCategory[] = [
     {
       title: 'OS',
-      items: ['Mac: Mostly Web Dev ', 'Window: Game + Web Dev', 'Linux(Ubuntu): Server'],
+      items: ['Mac: Mostly Dev', 'Window: Game + Dev', 'Linux(Ubuntu): Server'],
     },
     {
       title: 'Browser',
-      items: ['Chrome (PC)', 'Safari (Mobile)'],
+      items: ['PC: Chrome, Aside, Ego lite', 'Mobile: Safari'],
     },
     {
-      title: 'IDE',
-      items: ['Cursor: Main', 'VSCode: Sub', 'Antigravity: In test', 'Webstorm: Legacy - Vue2'],
+      title: 'IDE / ADE',
+      items: ['Orca', 'Herdr: Testing'],
     },
     {
       title: 'AI',
-      items: ['Claude / Claude Code', 'ChatGPT', 'Codex', 'Hermes', 'Gemini', 'Perplexity'],
+      items: ['Claude / Claude Code', 'ChatGPT / Codex', 'Hermes', 'Gemini'],
     },
     {
       title: 'Text Editor',
-      items: ['Notion', 'Typora'],
+      items: ['Memo: 개인 앱', 'Orca text editor'],
     },
     {
-      title: 'Terminal',
-      items: ['Iterm2: Main', 'Windows Terminal', 'Terminus: SSH, SFTP Client'],
+      title: '기타 개발 앱',
+      items: ['Fork: Git GUI', 'Mise: 통합 개발 툴 버전 매니저'],
     },
     {
-      title: '기타 맥 프로그램',
+      title: 'Mac',
       items: [
         'Homebrew: App Package Manager',
         'Better Touch Tool: Mac Trackpad Gesture & Shortcut Customization',
-        'Raycast: Spotlight Alternative Multi-functional Utility Tool',
-        'Ice: Top Menu Bar Manager',
         'CleanShot X: ScreenShot & Screen Record Tool',
         'PixelSnap: Screen px Measuring Tool',
         'ColorSlurp: ColorPicker',
         'AltTab: Tab Handling Tool',
         'Pastpal: Clipboard Manager',
+        'Karabiner: 맥 키보드 매핑',
       ],
+    },
+    {
+      title: 'Cross',
+      items: ['NordVPN', 'NordPass'],
+    },
+    {
+      title: 'Windows',
+      items: ['픽픽: 이미지 캡처', 'Ditto: 클립보드 매니저', 'PowerToys: 윈도우 공식 유틸앱'],
     },
   ];
 
@@ -86,7 +93,7 @@ export function UseTools() {
         viewport={{ once: true }}
         className="text-muted-foreground"
       >
-        현재 제가 웹 개발 등 작업을 할 때 주로 사용하는 프로그램들입니다.
+        개발과 개인 작업에 주로 사용하는 도구들입니다.
       </motion.p>
       <motion.div
         variants={container}
@@ -99,7 +106,7 @@ export function UseTools() {
           <motion.div
             key={category.title}
             variants={item}
-            className="space-y-2 p-4 bg-white dark:bg-neutral-800 shadow-md rounded-lg"
+            className={`space-y-2 p-4 bg-white dark:bg-neutral-800 shadow-md rounded-lg ${category.title === 'Mac' ? 'md:row-span-2' : ''}`}
           >
             <h3 className="text-lg font-semibold text-neutral-800 dark:text-neutral-200">
               {category.title}

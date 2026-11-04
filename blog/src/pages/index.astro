@@ -16,7 +16,7 @@ const description = 'Personal developer blog by Jun — web development, game de
 ---
 
 <BaseLayout title="Home" description={description} keywords={['Jun', 'devlog', 'blog', 'web development', 'frontend']}>
-  <div class="container overflow-x-hidden relative">
+  <div class="container overflow-x-hidden relative" data-home>
     <div class="light-rays-gate">
       <LightRays
         className="!fixed inset-0 z-0"
@@ -36,13 +36,14 @@ const description = 'Personal developer blog by Jun — web development, game de
         </h1>
       </div>
     </div>
-    <div class="mt-[5rem] max-md:mt-[10rem]"></div>
-    <div class="flex justify-center ">
+    <div class="flex justify-center mt-6">
       <TerminalInfo client:visible />
     </div>
-    <Flickering client:visible />
-    <div id="intro">
-      <div class="flex justify-center mt-[-21rem]">
+    <div id="intro" class="mt-12" data-home-content hidden>
+      <div class="relative flex justify-center py-10">
+        <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <Flickering client:visible />
+        </div>
         <div class="intro-wrapper">
           <TextAnimate
             className="font-display text-center text-4xl font-bold tracking-[-0.02em] max-sm:text-2xl dark:text-slate-200 text-slate-700"
@@ -54,15 +55,14 @@ const description = 'Personal developer blog by Jun — web development, game de
           <Intro client:visible />
         </div>
       </div>
-      <div class="on-spacer"></div>
       <Separator className="my-8" />
-        <TextAnimate
-          className="font-display text-center text-4xl max-sm:text-2xl font-extrabold dark:text-slate-200 text-slate-700"
-          by="character"
-          animation="slideLeft"
-          text="Technologies I've worked"
-          client:visible
-        />
+      <TextAnimate
+        className="font-display text-center text-4xl max-sm:text-2xl font-extrabold dark:text-slate-200 text-slate-700"
+        by="character"
+        animation="slideLeft"
+        text="Technologies I've worked"
+        client:visible
+      />
       <div class="flex justify-center">
 
         <InteractiveIconCloud client:visible />
@@ -85,15 +85,3 @@ const description = 'Personal developer blog by Jun — web development, game de
     }
   }
 </style>
-
-<script is:inline>
-  setTimeout(() => {
-    if (document.getElementById('intro'))
-      document.getElementById('intro').classList.add('visible');
-    if (document.querySelector('.scroll-animation') && document.querySelector('.container')) {
-      if (window.innerHeight < (document.querySelector('.container').offsetHeight + 224)) {
-        document.querySelector('.scroll-animation').classList.remove('hidden');
-      }
-    }
-  }, 4000);
-</script>

@@ -37,7 +37,7 @@ export function TechStack() {
       'typescript', 'javascript', 'vue', 'nuxt', 'react', 'tailwindcss',
       'pinia', 'zustand', 'nodedotjs', 'kotlin', 'spring',
       'postgresql', 'redis', 'sqlite', 'flutter', 'dart', 'astro',
-      'docker', 'storybook', 'vitest', 'playwright', 'pnpm', 'githubactions',
+      'docker', 'aws', 'terraform', 'storybook', 'vitest', 'playwright', 'pnpm', 'githubactions',
       'claude', 'chatgpt', 'hermes',
     ], mode);
   }

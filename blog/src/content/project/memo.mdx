@@ -8,12 +8,13 @@ description: Markdown 파일로 저장하는 개인용 메모 앱입니다.<br/>
 
 import ProjectInfo from '@/components/Project/ProjectInfo.astro';
 import ImageLoader from '@/components/Blog/ImageLoader.astro';
-
-> **이 글은 AI로 프로젝트를 분석해서 쓴 글입니다.**
+import Mermaid from '@/components/Blog/Mermaid.astro';
 
 <ProjectInfo frontmatter={frontmatter} />
 
 ## Intro
+
+> **이 글은 AI를 활용하여 작성했습니다.**
 
 **memo**는 혼자 쓰는 메모 앱입니다. 브라우저에서 편집하지만 저장되는 것은 서버 폴더 안의 Markdown 파일입니다. PC에서는 웹으로, iPhone에서는 같은 웹을 여는 Flutter WebView 앱으로 사용합니다.
 
@@ -78,7 +79,52 @@ MCP 연결을 통해 AI 클라이언트에서 메모를 검색하고 읽거나, 
 | AI 연결 | MCP SDK, OAuth |
 | 배포 | Docker, GitHub Actions, Cloudflare Tunnel |
 
-## 구현하면서 신경 쓴 부분
+## 설계와 구현
+
+### 전체 구조
+
+편집 화면과 외부 연결은 여러 개지만, 메모가 저장되는 규칙은 한곳에서 관리하도록 구성했습니다.
+
+<Mermaid title="입력은 여러 곳에서, 저장 규칙은 한곳에서">
+
+```mermaid
+flowchart TB
+  Web["웹 편집기"] --> API["웹 API"]
+  Phone["iPhone · Flutter WebView"] --> API
+  MCP["외부 AI · MCP"] --> Storage["공통 저장 계층"]
+  API --> Storage
+  Storage --> Files[("Markdown 파일<br/>YAML frontmatter")]
+  Storage --> History["수정 이력 · 휴지통"]
+  Storage -. 날짜가 있는 미완료 할 일 .-> Calendar["Google Calendar"]
+```
+
+</Mermaid>
+
+| 구성 요소 | 맡은 역할 |
+| --- | --- |
+| Nuxt 웹·Flutter WebView | 같은 웹 편집기로 메모를 읽고 수정하며, iPhone 앱은 키보드·툴바 등 기기 동작을 보완 |
+| 웹 API·MCP | 사람과 AI의 입력을 받아 공통 저장 계층으로 전달 |
+| 공통 저장 계층 | Markdown·frontmatter 저장, 버전 충돌 검사, 수정 이력과 휴지통 처리 |
+| Google Calendar 연결 | 저장한 메모 중 날짜가 있는 미완료 할 일을 외부 일정으로 반영 |
+
+메모 파일은 앱 밖에서도 읽을 수 있는 형태로 남기고, 캘린더는 그중 일정에 해당하는 정보를 보내는 경로로 뒀습니다. 메모 저장과 외부 동기화의 성공 여부를 나눈 것도 이 기준에 따른 선택입니다.
+
+### 기존 메모 수정과 외부 동기화의 경계
+
+<Mermaid title="기존 메모 수정과 외부 동기화의 경계">
+
+```mermaid
+flowchart TB
+  Request["수정 내용과 읽어 온 버전"] --> Version{"현재 버전과 일치?"}
+  Version -->|아니요| Conflict["충돌 안내<br/>오래된 내용으로 덮어쓰지 않음"]
+  Version -->|예| Save["메모 저장 · 수정 이력 처리"]
+  Save --> Sync["필요한 캘린더 변경 반영"]
+  Sync --> Result{"동기화 성공?"}
+  Result -->|예| Done["저장 완료"]
+  Result -->|아니요| Retry["메모 저장은 유지<br/>동기화 오류 안내"]
+```
+
+</Mermaid>
 
 ### 메모가 저장되는 경로를 하나로
 

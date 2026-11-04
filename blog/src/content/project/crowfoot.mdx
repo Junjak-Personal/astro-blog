@@ -8,12 +8,13 @@ description: 데이터베이스 스키마에서 독립적인 ERD 웹 앱을 만�
 
 import ProjectInfo from '@/components/Project/ProjectInfo.astro';
 import ImageLoader from '@/components/Blog/ImageLoader.astro';
-
-> **이 글은 AI로 프로젝트를 분석해서 쓴 글입니다.**
+import Mermaid from '@/components/Blog/Mermaid.astro';
 
 <ProjectInfo frontmatter={frontmatter} />
 
 ## Intro
+
+> **이 글은 AI를 활용하여 작성했습니다.**
 
 **Crowfoot**은 데이터베이스 스키마 파일에서 ERD를 만들고, 정적 웹 앱으로 공유하는 CLI 도구입니다. [Liam ERD](https://github.com/liam-hq/liam)를 기반으로 만든 포크이며, 원작의 다이어그램 위에 배치 저장·메모·색상·테이블 그룹 등의 기능을 추가했습니다.
 
@@ -87,7 +88,53 @@ npx serve dist/
 | 빌드 | Vite, pnpm 워크스페이스 |
 | 결과물 | 정적 SPA, JSON 배치·그룹·메모 파일 |
 
-## 구현하면서 신경 쓴 부분
+## 설계와 구현
+
+### 전체 구조
+
+스키마를 읽어 결과물을 만드는 CLI와, 그 결과물을 탐색·편집하는 브라우저 뷰어를 나눴습니다. 결과물은 정적 웹 앱이므로 별도 백엔드 없이 공유할 수 있습니다.
+
+<Mermaid title="생성 도구와 정적 뷰어의 구성">
+
+```mermaid
+flowchart TB
+  Input["SQL · ORM 스키마"] --> CLI["Crowfoot CLI<br/>스키마 해석 · 웹 앱 생성"]
+  CLI --> Static["정적 ERD 웹 앱"]
+  Metadata["배치 · 그룹 · 메모 JSON"] --> Viewer["React Flow 뷰어"]
+  Static --> Viewer
+  URL["URL의 편집 내용"] --> Viewer
+  Viewer --> Export["공유 링크 · DDL · 이미지"]
+  Viewer --> FromLink["erd from-link"]
+  FromLink --> Metadata
+```
+
+</Mermaid>
+
+| 구성 요소 | 맡은 역할 |
+| --- | --- |
+| CLI | SQL·ORM 스키마를 해석하고 ERD 웹 앱과 관련 파일을 생성 |
+| React Flow 뷰어 | 테이블·관계를 표시하고 배치, 메모, 그룹과 스키마를 편집 |
+| 배치·그룹·메모 파일 | 스키마 자체와 별도로 사람이 정리한 다이어그램 정보를 보관 |
+| URL·내보내기 경로 | 편집 상태를 링크로 공유하거나 CLI로 파일에 반영하고, DDL·이미지 등으로 내보냄 |
+
+### 스키마 해석에서 누락을 드러내는 흐름
+
+<Mermaid title="스키마 해석에서 누락을 드러내는 흐름">
+
+```mermaid
+flowchart TB
+  Input["스키마 · 마이그레이션 SQL 입력"] --> Parse["스키마 해석"]
+  Parse --> Unsupported{"해석하지 못한 구문이 있는가?"}
+  Unsupported -->|없음| Build["정적 ERD 생성"]
+  Unsupported -->|있음| Strict{"strict 모드인가?"}
+  Strict -->|예| Fail["빌드 실패로 누락 알림"]
+  Strict -->|아니요| Build
+  Parse -. JSON 출력 .-> Report["해석 결과 · 누락 구문 확인"]
+```
+
+</Mermaid>
+
+### 스키마를 갱신해도 설명은 유지하기
 
 스키마를 만드는 데이터와 화면에서 정리한 정보를 나눠 관리했습니다. 스키마를 새로 읽어도 기존 테이블의 배치와 설명을 다시 적용할 수 있어야, 다이어그램을 한 번 쓰고 버리는 그림 대신 계속 갱신하는 문서로 사용할 수 있기 때문입니다.
 

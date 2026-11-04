@@ -1,7 +1,9 @@
-import { type ElementType, memo } from "react"
-import { AnimatePresence, motion, type MotionProps, type Variants } from "motion/react"
+import type { MotionProps, Variants } from 'motion/react';
+import type { ElementType } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { memo, useMemo } from 'react';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 type AnimationType = "text" | "word" | "character" | "line"
 type AnimationVariant =
@@ -257,7 +259,7 @@ const defaultItemAnimationVariants: Record<
   },
 }
 
-const TextAnimateBase = ({
+function TextAnimateBase({
   children,
   text,
   delay = 0,
@@ -265,33 +267,36 @@ const TextAnimateBase = ({
   variants,
   className,
   segmentClassName,
-  as: Component = "p",
+  as: Component = 'p',
   startOnView = true,
   once = false,
-  by = "word",
-  animation = "fadeIn",
+  by = 'word',
+  animation = 'fadeIn',
   accessible = true,
   ...props
-}: TextAnimateProps) => {
-  const MotionComponent = motion.create(Component)
-  const content = text || (typeof children === "string" ? children : "")
+}: TextAnimateProps) {
+  const MotionComponent = useMemo(() => motion.create(Component), [Component]);
+  const shouldReduceMotion = useReducedMotion();
+  const content = text || (typeof children === 'string' ? children : '');
 
-  let segments: string[] = []
+  let segments: string[] = [];
   switch (by) {
-    case "word":
-      segments = content.split(/(\s+)/)
-      break
-    case "character":
-      segments = content.split("")
-      break
-    case "line":
-      segments = content.split("\n")
-      break
-    case "text":
+    case 'word':
+      segments = content.split(/(\s+)/);
+      break;
+    case 'character':
+      segments = content.split('');
+      break;
+    case 'line':
+      segments = content.split('\n');
+      break;
+    case 'text':
     default:
-      segments = [content]
-      break
+      segments = [content];
+      break;
   }
+
+  const segmentCount = Math.max(segments.length, 1);
 
   const finalVariants = variants
     ? {
@@ -302,13 +307,13 @@ const TextAnimateBase = ({
             transition: {
               opacity: { duration: 0.01, delay },
               delayChildren: delay,
-              staggerChildren: duration / segments.length,
+              staggerChildren: duration / segmentCount,
             },
           },
           exit: {
             opacity: 0,
             transition: {
-              staggerChildren: duration / segments.length,
+              staggerChildren: duration / segmentCount,
               staggerDirection: -1,
             },
           },
@@ -323,52 +328,60 @@ const TextAnimateBase = ({
               ...defaultItemAnimationVariants[animation].container.show,
               transition: {
                 delayChildren: delay,
-                staggerChildren: duration / segments.length,
+                staggerChildren: duration / segmentCount,
               },
             },
             exit: {
               ...defaultItemAnimationVariants[animation].container.exit,
               transition: {
-                staggerChildren: duration / segments.length,
+                staggerChildren: duration / segmentCount,
                 staggerDirection: -1,
               },
             },
           },
           item: defaultItemAnimationVariants[animation].item,
         }
-      : { container: defaultContainerVariants, item: defaultItemVariants }
+      : { container: defaultContainerVariants, item: defaultItemVariants };
 
   return (
     <AnimatePresence mode="popLayout">
       <MotionComponent
-        variants={finalVariants.container as Variants}
-        initial="hidden"
-        whileInView={startOnView ? "show" : undefined}
-        animate={startOnView ? undefined : "show"}
-        exit="exit"
-        className={cn("whitespace-pre-wrap", className)}
+        variants={shouldReduceMotion ? undefined : finalVariants.container as Variants}
+        initial={shouldReduceMotion ? false : 'hidden'}
+        whileInView={!shouldReduceMotion && startOnView ? 'show' : undefined}
+        animate={shouldReduceMotion
+          ? { opacity: 1, x: 0, y: 0, scale: 1, filter: 'none', transition: { duration: 0 } }
+          : startOnView ? undefined : 'show'}
+        exit={shouldReduceMotion ? undefined : 'exit'}
+        className={cn('whitespace-pre-wrap', className)}
         viewport={{ once }}
         aria-label={accessible ? content : undefined}
         {...props}
       >
-        {accessible && <span className="sr-only">{content}</span>}
-        {segments.map((segment, i) => (
-          <motion.span
-            key={`${by}-${segment}-${i}`}
-            variants={finalVariants.item}
-            custom={i * staggerTimings[by]}
-            className={cn(
-              by === "line" ? "block" : "inline-block whitespace-pre",
-              segmentClassName,
+        {shouldReduceMotion
+          ? content
+          : (
+              <>
+                {accessible && <span className="sr-only">{content}</span>}
+                {segments.map((segment, i) => (
+                  <motion.span
+                    key={`${by}-${segment}-${i}`}
+                    variants={finalVariants.item}
+                    custom={i * staggerTimings[by]}
+                    className={cn(
+                      by === 'line' ? 'block' : 'inline-block whitespace-pre',
+                      segmentClassName,
+                    )}
+                    aria-hidden={accessible ? true : undefined}
+                  >
+                    {segment}
+                  </motion.span>
+                ))}
+              </>
             )}
-            aria-hidden={accessible ? true : undefined}
-          >
-            {segment}
-          </motion.span>
-        ))}
       </MotionComponent>
     </AnimatePresence>
-  )
+  );
 }
 
-export const TextAnimate = memo(TextAnimateBase)
+export const TextAnimate = memo(TextAnimateBase);

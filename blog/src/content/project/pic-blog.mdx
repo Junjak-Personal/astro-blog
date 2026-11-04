@@ -8,12 +8,13 @@ description: 사진에 담긴 위치와 촬영 시각으로 여행을 기록하�
 
 import ProjectInfo from '@/components/Project/ProjectInfo.astro';
 import ImageLoader from '@/components/Blog/ImageLoader.astro';
-
-> **이 글은 AI로 프로젝트를 분석해서 쓴 글입니다.**
+import Mermaid from '@/components/Blog/Mermaid.astro';
 
 <ProjectInfo frontmatter={frontmatter} />
 
 ## Intro
+
+> **이 글은 AI를 활용하여 작성했습니다.**
 
 **pic·blog**는 사진과 지도, 짧은 이야기를 함께 남기는 개인 여행 기록입니다. 사진의 EXIF에 담긴 GPS 좌표와 촬영 시각을 이용해 방문 장소와 동선을 만들고, 여기에 장소 이름과 글을 붙일 수 있습니다.
 
@@ -79,7 +80,51 @@ MCP도 연결해 외부 AI 클라이언트에서 여행 기록을 읽고 제한�
 | 검증 | Vitest, Playwright |
 | 배포 | Docker, GitHub Actions, Cloudflare Tunnel |
 
-## 구현하면서 신경 쓴 부분
+## 설계와 구현
+
+### 전체 구조
+
+사진을 준비하는 작업, 여행 기록을 저장하는 작업, 기록을 감상하는 화면을 나눴습니다. 개인 서버가 무거운 이미지 변환까지 처리하지 않도록 업로드 전 준비는 클라이언트에서 맡습니다.
+
+<Mermaid title="사진 준비·저장·감상 화면의 구성">
+
+```mermaid
+flowchart TB
+  Browser["브라우저<br/>메타데이터 · 이미지 크기 조정"] --> Server["Nuxt 서버"]
+  Phone["iPhone · PhotoKit<br/>필요한 크기의 사진 준비"] --> Server
+  Server --> DB[("SQLite<br/>여행 · 방문 장소 정보")]
+  Server --> Photos[("사진 폴더<br/>감상용 이미지 · 썸네일")]
+  Server --> View["사진 갤러리 · Mapbox 지도"]
+  AI["AI 분석<br/>정리 · 내용 보강 제안"] -. 검토 후 적용 .-> Server
+```
+
+</Mermaid>
+
+| 구성 요소 | 맡은 역할 |
+| --- | --- |
+| 브라우저·iPhone 앱 | 사진 선택, 메타데이터 확인, 업로드할 이미지 준비. iPhone은 PhotoKit으로 필요한 크기의 사진을 가져옴 |
+| Nuxt 서버 | 여행·방문 장소 정보를 SQLite에 저장하고, 처리된 사진은 파일로 보관 |
+| 지도·갤러리 | GPS 좌표와 촬영 순서를 바탕으로 장소, 사진, 이동 흐름을 함께 표시 |
+| AI 분석 경로 | 사진 정리·내용 보강을 비동기로 제안하고, 검토·검증을 거쳐 변경 내용을 적용 |
+
+저장 구조는 SQLite와 사진 폴더로 운영할 수 있을 정도로 작게 유지했습니다. AI 분석도 기존 기록을 바로 덮어쓰는 경로로 두지 않고, 제안과 적용 사이에 검토 단계를 둬 직접 정리한 여행 기록을 보호하도록 했습니다.
+
+### AI 제안을 여행 기록에 반영하는 흐름
+
+<Mermaid title="AI 제안을 여행 기록에 반영하는 흐름">
+
+```mermaid
+flowchart TB
+  Photos["사진과 메타데이터"] --> Analyze["비동기 AI 분석"]
+  Analyze --> Proposal["장소 · 대표 사진 · 설명 제안"]
+  Proposal --> Review{"사용자가 검토 후 적용?"}
+  Review -->|아니요| Keep["기존 기록 유지"]
+  Review -->|예| Check{"검토 중 원본이 바뀌었나?"}
+  Check -->|예| Stop["적용 중단 · 다시 검토"]
+  Check -->|아니요| Apply["검증한 변경 내용 적용"]
+```
+
+</Mermaid>
 
 ### 이미지 처리는 브라우저에서
 
