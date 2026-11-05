@@ -6,16 +6,19 @@ import TerminalInfo from '@/components/home/TerminalInfo';
 import { LightRays } from '@/components/ui/light-rays';
 import { Separator } from '@/components/ui/separator';
 import { TextAnimate } from '@/components/ui/text-animate';
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
 import BaseLayout from '@/layouts/baseLayout.astro';
 
 
 // Full Astro Component Syntax:
 // https://docs.astro.build/basics/astro-components/
-const description = 'Personal developer blog by Jun — web development, game development, and more';
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale);
+const description = t('site.home_description', 'Personal developer blog by Jun — web development, game development, and more');
 
 ---
 
-<BaseLayout title="Home" description={description} keywords={['Jun', 'devlog', 'blog', 'web development', 'frontend']}>
+<BaseLayout title={t('site.home', 'Home')} description={description} keywords={['Jun', 'devlog', 'blog', 'web development', 'frontend']}>
   <div class="container overflow-x-hidden relative" data-home>
     <div class="light-rays-gate">
       <LightRays
@@ -29,7 +32,7 @@ const description = 'Personal developer blog by Jun — web development, game de
     <div class="relative h-[200px] w-full">
       <div class="relative flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
         <span class="text-xs font-semibold tracking-[0.35em] text-slate-800/60 uppercase dark:text-slate-200/60">
-          Private Blog
+          {t('home.personal_blog', 'Private Blog')}
         </span>
         <h1 class="text-foreground text-4xl font-bold md:text-5xl">
           Jun Devlog
@@ -37,7 +40,7 @@ const description = 'Personal developer blog by Jun — web development, game de
       </div>
     </div>
     <div class="flex justify-center mt-6">
-      <TerminalInfo client:visible />
+      <TerminalInfo locale={locale} client:visible />
     </div>
     <div id="intro" class="mt-12" data-home-content hidden>
       <div class="relative flex justify-center py-10">
@@ -49,10 +52,10 @@ const description = 'Personal developer blog by Jun — web development, game de
             className="font-display text-center text-4xl font-bold tracking-[-0.02em] max-sm:text-2xl dark:text-slate-200 text-slate-700"
             by="character"
             animation="slideUp"
-            text="Hello World! I'm Junja"
+            text={t('home.greeting', 'Hello World! I\'m Junja')}
             client:visible
           />
-          <Intro client:visible />
+          <Intro locale={locale} client:visible />
         </div>
       </div>
       <Separator className="my-8" />
@@ -60,12 +63,12 @@ const description = 'Personal developer blog by Jun — web development, game de
         className="font-display text-center text-4xl max-sm:text-2xl font-extrabold dark:text-slate-200 text-slate-700"
         by="character"
         animation="slideLeft"
-        text="Technologies I've worked"
+        text={t('home.technologies', 'Technologies I\'ve worked')}
         client:visible
       />
       <div class="flex justify-center">
 
-        <InteractiveIconCloud client:visible />
+        <InteractiveIconCloud locale={locale} client:visible />
       </div>
     </div>
 

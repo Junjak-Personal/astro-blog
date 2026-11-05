@@ -1,11 +1,15 @@
 'use client';
 
 import type { PolaroidImage } from './types';
+import type { Locale } from '@/i18n';
 import { useStore } from '@nanostores/react';
+
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 import {
   $polaroidLightbox,
   closePolaroidLightbox,
@@ -17,7 +21,8 @@ function wrap(index: number, count: number): number {
   return ((index % count) + count) % count;
 }
 
-function PolaroidCard({ item }: { item: PolaroidImage }) {
+function PolaroidCard({ item, locale }: { item: PolaroidImage; locale: Locale }) {
+  const { t } = useI18n(locale, contentMessages);
   const [flipped, setFlipped] = useState(false);
 
   // always land on the photo side when the polaroid changes
@@ -38,7 +43,8 @@ function PolaroidCard({ item }: { item: PolaroidImage }) {
       <button
         type="button"
         className={`pf-flip${flipped ? ' is-flipped' : ''}`}
-        aria-label={flipped ? '사진 보기' : '뒷면 보기'}
+        data-testid="gallery-photo-flip"
+        aria-label={flipped ? t('content-gallery.photo', '사진 보기') : t('content-gallery.back', '뒷면 보기')}
         onClick={() => setFlipped((value) => !value)}
       >
         <div className="pf-flip__inner">
@@ -57,12 +63,13 @@ function PolaroidCard({ item }: { item: PolaroidImage }) {
           </div>
         </div>
       </button>
-      <p className="pf-hint">{flipped ? '↺ 사진으로' : '눌러서 뒤집기'}</p>
+      <p className="pf-hint">{flipped ? t('content-gallery.return_photo', '↺ 사진으로') : t('content-gallery.flip', '눌러서 뒤집기')}</p>
     </motion.div>
   );
 }
 
-export function PolaroidFlipLightbox() {
+export function PolaroidFlipLightbox({ locale: initialLocale }: { locale?: Locale }) {
+  const { locale, t } = useI18n(initialLocale, contentMessages);
   const { items, index, visible } = useStore($polaroidLightbox);
   const count = items.length;
   const [mounted, setMounted] = useState(false);
@@ -118,17 +125,17 @@ export function PolaroidFlipLightbox() {
           transition={{ duration: 0.28 }}
           onClick={closePolaroidLightbox}
         >
-          <button type="button" className="pf-btn pf-btn--close" aria-label="닫기" onClick={closePolaroidLightbox}>
+          <button type="button" className="pf-btn pf-btn--close" data-testid="gallery-lightbox-close" aria-label={t('content-gallery.close', '닫기')} onClick={closePolaroidLightbox}>
             <X size={20} />
           </button>
 
           <div className="pf-arena" onClick={(event) => event.stopPropagation()}>
-            <PolaroidCard item={item} />
+            <PolaroidCard locale={locale} item={item} />
           </div>
 
           {count > 1 && (
             <div className="pf-controls" onClick={(event) => event.stopPropagation()}>
-              <button type="button" className="pf-btn pf-nav" aria-label="이전" onClick={() => go(-1)}>
+              <button type="button" className="pf-btn pf-nav" data-testid="gallery-lightbox-previous" aria-label={t('content-gallery.previous', '이전 사진')} onClick={() => go(-1)}>
                 <ChevronLeft size={24} />
               </button>
               <span className="pf-counter">
@@ -136,7 +143,7 @@ export function PolaroidFlipLightbox() {
                 {' / '}
                 {count}
               </span>
-              <button type="button" className="pf-btn pf-nav" aria-label="다음" onClick={() => go(1)}>
+              <button type="button" className="pf-btn pf-nav" data-testid="gallery-lightbox-next" aria-label={t('content-gallery.next', '다음 사진')} onClick={() => go(1)}>
                 <ChevronRight size={24} />
               </button>
             </div>

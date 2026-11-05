@@ -1,13 +1,16 @@
 import type { VariantProps } from "class-variance-authority"
+import type { Locale } from '@/i18n';
 import { cva } from "class-variance-authority"
 import useEmblaCarousel, {
    type UseEmblaCarouselType,
 } from "embla-carousel-react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import * as React from "react"
+import { Button } from '@/components/ui/button';
+import { contentMessages } from '@/i18n/content';
 
+import { useI18n } from '@/i18n/react';
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
@@ -15,6 +18,7 @@ type CarouselOptions = UseCarouselParameters[0]
 type CarouselPlugin = UseCarouselParameters[1]
 
 interface CarouselProps {
+  locale?: Locale;
    opts?: CarouselOptions
    plugins?: CarouselPlugin
    setApi?: (api: CarouselApi) => void
@@ -52,6 +56,7 @@ const Carousel = React.forwardRef<
    (
       {
          opts,
+      locale: initialLocale,
          plugins,
          setApi,
          orientation = "horizontal",
@@ -62,6 +67,7 @@ const Carousel = React.forwardRef<
       },
       ref,
    ) => {
+    const { locale, t } = useI18n(initialLocale, contentMessages);
       const [carouselRef, api] = useEmblaCarousel(
          {
             ...opts,
@@ -152,6 +158,7 @@ const Carousel = React.forwardRef<
       return (
          <CarouselContext.Provider
             value={{
+          locale,
                carouselRef,
                api,
                opts,
@@ -173,7 +180,7 @@ const Carousel = React.forwardRef<
                onKeyDownCapture={handleKeyDown}
                className={cn("relative", className)}
                role="region"
-               aria-roledescription="carousel"
+              aria-roledescription={t('content-gallery.carousel', 'carousel')}
                {...props}
             >
                {children}
@@ -210,13 +217,14 @@ const CarouselItem = React.forwardRef<
    HTMLDivElement,
    React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-   const { orientation } = useCarousel()
+  const { orientation, locale } = useCarousel();
+  const { t } = useI18n(locale, contentMessages);
 
    return (
       <div
          ref={ref}
          role="group"
-         aria-roledescription="slide"
+        aria-roledescription={t('content-gallery.slide', 'slide')}
          className={cn(
             "min-w-0 shrink-0 grow-0 basis-full",
             orientation === "horizontal" ? "pl-4" : "pt-4",
@@ -232,7 +240,8 @@ const CarouselPrevious = React.forwardRef<
    HTMLButtonElement,
    React.ComponentProps<typeof Button>
 >(({ className, variant = "outline", size = "icon", ...props }, ref) => {
-   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
+  const { orientation, scrollPrev, canScrollPrev, locale } = useCarousel();
+  const { t } = useI18n(locale, contentMessages);
 
    return (
       <Button
@@ -247,11 +256,12 @@ const CarouselPrevious = React.forwardRef<
             className,
          )}
          disabled={!canScrollPrev}
+        data-testid="gallery-slide-previous"
          onClick={scrollPrev}
          {...props}
       >
          <ArrowLeft className="size-4" />
-         <span className="sr-only">Previous slide</span>
+      <span className="sr-only">{t('content-carousel.previous', 'Previous slide')}</span>
       </Button>
    )
 })
@@ -261,7 +271,8 @@ const CarouselNext = React.forwardRef<
    HTMLButtonElement,
    React.ComponentProps<typeof Button>
 >(({ className, variant = "outline", size = "icon", ...props }, ref) => {
-   const { orientation, scrollNext, canScrollNext } = useCarousel()
+  const { orientation, scrollNext, canScrollNext, locale } = useCarousel();
+  const { t } = useI18n(locale, contentMessages);
 
    return (
       <Button
@@ -276,11 +287,12 @@ const CarouselNext = React.forwardRef<
             className,
          )}
          disabled={!canScrollNext}
+        data-testid="gallery-slide-next"
          onClick={scrollNext}
          {...props}
       >
          <ArrowRight className="size-4" />
-         <span className="sr-only">Next slide</span>
+      <span className="sr-only">{t('content-carousel.next', 'Next slide')}</span>
       </Button>
    )
 })
@@ -343,8 +355,10 @@ interface CarouselDotsProps
 
 const CarouselDots = React.forwardRef<HTMLDivElement, CarouselDotsProps>(
    ({ className, size, gap, ...props }, ref) => {
-      const { orientation, dotsPosition, totalSlides, currentIndex, scrollTo } =
-         useCarousel()
+    const { orientation, dotsPosition, totalSlides, currentIndex, scrollTo, locale }
+      = useCarousel();
+
+    const { t } = useI18n(locale, contentMessages);
 
       if (totalSlides <= 1) return null
 
@@ -368,7 +382,8 @@ const CarouselDots = React.forwardRef<HTMLDivElement, CarouselDotsProps>(
                   key={index}
                   role="tab"
                   aria-selected={currentIndex === index}
-                  aria-label={`Go to slide ${index + 1}`}
+                 data-testid={`gallery-slide-select-${index}`}
+                 aria-label={t('content-gallery.go_slide', 'Go to slide {number}', { number: index + 1 })}
                   onClick={() => scrollTo(index)}
                   className={cn(
                      dotsVariants({ size }),

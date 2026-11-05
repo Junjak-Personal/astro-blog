@@ -2,15 +2,16 @@
 import { ClientRouter } from 'astro:transitions';
 import dayjs from 'dayjs';
 import dayJsRelativeTime from 'dayjs/plugin/relativeTime';
-
 import CommonScript from '@/components/layouts/CommonScript.astro';
+
 import FloatButton from '@/components/layouts/FloatButton.astro';
-import ImageFullscreen from '@/components/layouts/ImageFullscreen.astro';
-import PelicaCursor from '@/components/layouts/PelicaCursor.astro';
 import Footer from '@/components/layouts/Footer';
+import ImageFullscreen from '@/components/layouts/ImageFullscreen.astro';
 import Navigation from '@/components/layouts/Navigation';
+import PelicaCursor from '@/components/layouts/PelicaCursor.astro';
 import ThemeInit from '@/components/layouts/ThemeInit.astro';
 import ScrollProgress from '@/components/ui/scroll-progress';
+import { createTranslator, getLocaleFromUrl, htmlLanguage, localizePath, stripLocale } from '@/i18n';
 import CommonMeta from '../components/MetaAnalytics/CommonMeta.astro';
 import JsonLd from '../components/MetaAnalytics/JsonLd.astro';
 import VendorScript from '../components/MetaAnalytics/VendorScript.astro';
@@ -31,17 +32,20 @@ type Props = {
 };
 
 const { title, description, keywords } = Astro.props;
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale);
+
 ---
 
-<html lang="en">
+<html lang={htmlLanguage(locale)} data-locale={locale}>
 <head>
   <ClientRouter />
   <CommonMeta title={`Jun Devlog | ${title}`} description={description} keywords={keywords} />
   <JsonLd
     schema={{ type: 'website', title: `Jun Devlog | ${title}`, description }}
     breadcrumbs={[
-      { name: 'Home', url: '/' },
-      ...(Astro.url.pathname !== '/' ? [{ name: title, url: Astro.url.pathname }] : []),
+      { name: t('site.home', 'Home'), url: localizePath('/', locale) },
+      ...(stripLocale(Astro.url.pathname) !== '/' ? [{ name: title, url: Astro.url.pathname }] : []),
     ]}
   />
   <VendorScript />
@@ -55,7 +59,7 @@ const { title, description, keywords } = Astro.props;
 <body>
 <PelicaCursor />
 <ImageFullscreen />
-<Navigation client:idle transition:persist="main-nav"></Navigation>
+<Navigation locale={locale} client:idle transition:persist="main-nav"></Navigation>
 
 <main>
   <ScrollProgress
@@ -68,7 +72,7 @@ const { title, description, keywords } = Astro.props;
     <div class="dummy-container" />
   </div>
 </main>
-<Footer client:idle transition:persist="main-footer" />
+<Footer locale={locale} client:idle transition:persist="main-footer" />
 <FloatButton />
 <CommonScript />
 </body>

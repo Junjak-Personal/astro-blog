@@ -41,7 +41,18 @@ const SCSS_Logger = {
 export default defineConfig({
   // Enable React to support React JSX components.
   site: 'https://www.jun-devlog.win',
+  i18n: {
+    defaultLocale: 'ko',
+    locales: ['ko', 'en', { path: 'jp', codes: ['ja'] }],
+    routing: { prefixDefaultLocale: false },
+  },
   redirects: {
+    '/jp/project/sake-slide2': '/jp/playground/sake-slide2',
+    '/en/project/sake-slide2': '/en/playground/sake-slide2',
+    '/jp/project/sake-slide1': '/jp/playground/sake-slide1',
+    '/en/project/sake-slide1': '/en/playground/sake-slide1',
+    '/jp/project/ai-tetris': '/jp/playground/ai-tetris',
+    '/en/project/ai-tetris': '/en/playground/ai-tetris',
     '/project/ai-tetris': '/playground/ai-tetris',
     '/project/sake-slide1': '/playground/sake-slide1',
     '/project/sake-slide2': '/playground/sake-slide2',

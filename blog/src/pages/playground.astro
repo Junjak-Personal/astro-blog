@@ -1,8 +1,9 @@
 ---
+import { getCollection } from 'astro:content';
 // Component Imports
 import EachArticles from '@/components/Project/EachArticles';
+import { createTranslator, getLocaleFromUrl, localizePath } from '@/i18n';
 import BaseLayout from '@/layouts/baseLayout.astro';
-import { getCollection } from 'astro:content';
 
 const projects = await getCollection('playground');
 projects.sort((a, b) => {
@@ -11,17 +12,19 @@ projects.sort((a, b) => {
   return bDate.getTime() - aDate.getTime();
 });
 
-const description = 'Interactive demos and experiments with frontend technologies';
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale);
+const description = t('site.playground_description', 'Interactive demos and experiments with frontend technologies');
 ---
 
-<BaseLayout title="Playground" description={description} keywords={['playground', 'demo', 'interactive', 'frontend experiment']}>
+<BaseLayout title={t('site.playground', 'Playground')} description={description} keywords={['playground', 'demo', 'interactive', 'frontend experiment']}>
   <div class="container">
-    <h1>Playground</h1>
+    <h1>{t('site.playground', 'Playground')}</h1>
     <hr class="title-divider" />
 
     <div id="projects-wrapper" class="mt-8">
       {projects.map((project) => (
-        <EachArticles frontmatter={project.data} url={`/playground/${project.id}`} client:visible />
+        <EachArticles locale={locale} frontmatter={project.data} url={localizePath(`/playground/${project.id}`, locale)} client:visible />
       ))}
     </div>
   </div>

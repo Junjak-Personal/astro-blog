@@ -1,5 +1,5 @@
+import type { Locale } from '@/i18n';
 import type { StringKeyType } from '@/types/commonType.ts';
-import { Icon } from '@/components/ui/icon';
 import { useStore } from '@nanostores/react';
 import { motion } from 'framer-motion';
 // @flow
@@ -9,15 +9,20 @@ import { EachProject } from '@/components/About/ChronicleComp/EachProject.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card.tsx';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
+import { Icon } from '@/components/ui/icon';
 import { Separator } from '@/components/ui/separator.tsx';
+import { aboutMessages } from '@/i18n/about';
+import { useI18n } from '@/i18n/react';
 import { $theme } from '@/store/system.ts';
 
 type Props = {
+  locale?: Locale;
   isOpen: StringKeyType<boolean>;
   handleOpenChange: (key: string) => void;
 };
 
-export function FreeTimeline({ isOpen, handleOpenChange }: Props) {
+export function FreeTimeline({ locale: initialLocale, isOpen, handleOpenChange }: Props) {
+  const { locale, t } = useI18n(initialLocale, aboutMessages);
   const theme = useStore($theme);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -30,7 +35,7 @@ export function FreeTimeline({ isOpen, handleOpenChange }: Props) {
       {
         title: 'Yosul',
         duration: '2024.06 ~ 2025-07',
-        desc: '국내에 전문적인 주류 리뷰 커뮤니티가 없어 우리가 한번 만들어보자는 생각하에 진행하고 있는 프로젝트.\n구성원은 모두 전/현직 직장인으로 사이드 프로젝트 겸 진행하고 있습니다.\n차별점으로는 주류 리뷰를 좀 더 디테일하게 작성할 수 있다는 점입니다.\n프론트엔드 및 마크업 작업을 맡아서 진행했으나, 서로 시간을 내기가 힘들다고 판단하여 중단에 프로젝트를 중단했습니다.',
+        desc: t('about.free_project_1', '국내에 전문적인 주류 리뷰 커뮤니티가 없어 우리가 한번 만들어보자는 생각하에 진행하고 있는 프로젝트.\n구성원은 모두 전/현직 직장인으로 사이드 프로젝트 겸 진행하고 있습니다.\n차별점으로는 주류 리뷰를 좀 더 디테일하게 작성할 수 있다는 점입니다.\n프론트엔드 및 마크업 작업을 맡아서 진행했으나, 서로 시간을 내기가 힘들다고 판단하여 중단에 프로젝트를 중단했습니다.'),
         techStackIcon: isHydrated
           ? [
               { iconUrl: `/images/icon/tech-stack/${mode}/typescript.svg`, techName: 'Typescript' },
@@ -43,7 +48,7 @@ export function FreeTimeline({ isOpen, handleOpenChange }: Props) {
             ]
           : [],
       },
-      { title: 'Blog', duration: '2025.02 ~ Present', desc: '현재 보고 있는 이 블로그로, 위에 소개글에 나와있는대로 새로운 기술을 써서 개인 블로그를 만들어보자라는 마인드로 진행하고 있는 프로젝트.\n시간이 날 때 Blog와 Playground에 게시글을 올릴 예정입니다.', techStackIcon: isHydrated
+      { title: 'Blog', duration: t('about.ongoing_2025_02', '2025.02 ~ Present'), desc: t('about.free_project_2', '현재 보고 있는 이 블로그로, 위에 소개글에 나와있는대로 새로운 기술을 써서 개인 블로그를 만들어보자라는 마인드로 진행하고 있는 프로젝트.\n시간이 날 때 Blog와 Playground에 게시글을 올릴 예정입니다.'), techStackIcon: isHydrated
         ? [
             { iconUrl: `/images/icon/tech-stack/${mode}/typescript.svg`, techName: 'Typescript' },
             { iconUrl: `/images/icon/tech-stack/${mode}/astro.svg`, techName: 'Astro' },
@@ -79,7 +84,7 @@ export function FreeTimeline({ isOpen, handleOpenChange }: Props) {
               {isOpen.free
                 ? (<Icon icon="mingcute:up-line" className="w-4 h-4" />)
                 : (<Icon icon="mingcute:down-line" className="w-4 h-4" />)}
-              <span className="sr-only">Toggle</span>
+              <span className="sr-only">{t('about.toggle', 'Toggle')}</span>
             </Button>
           </CollapsibleTrigger>
         </div>
@@ -92,23 +97,23 @@ export function FreeTimeline({ isOpen, handleOpenChange }: Props) {
           <CollapsibleContent className="space-y-2">
             <Card className="project-card">
               <CardTitle className="px-4 pt-4">
-                Free
+                {t('about.free', 'Free')}
               </CardTitle>
               <CardDescription className="px-4 mt-1 project-card-desc">
-                2024년 8월 퇴사 이후에는 회사 일에 바빠서 제대로 즐기지 못했던 여행이나 게임들을 하며 시간을 보냈습니다.
+                {t('about.free_travel', '2024년 8월 퇴사 이후에는 회사 일에 바빠서 제대로 즐기지 못했던 여행이나 게임들을 하며 시간을 보냈습니다.')}
                 {'\n'}
-                특히 24.11.28 ~ 24.12.24 기간에는 버킷리스트 중 하나였던 일본 전국 일주를 다녀왔습니다.
+                {t('about.free_japan', '특히 24.11.28 ~ 24.12.24 기간에는 버킷리스트 중 하나였던 일본 전국 일주를 다녀왔습니다.')}
                 {'\n'}
-                그에 대한 자세한 사항은 블로그에 일주기 포스트에서 확인할 수 있습니다.
+                {t('about.free_blog', '그에 대한 자세한 사항은 블로그에 일주기 포스트에서 확인할 수 있습니다.')}
                 {'\n'}
-                긴 휴식기를 마치고 현재는 개인 공부 및 프로젝트를 진행하며 재 취직을 준비하고 있습니다.
+                {t('about.free_study', '긴 휴식기를 마치고 현재는 개인 공부 및 프로젝트를 진행하며 재 취직을 준비하고 있습니다.')}
               </CardDescription>
               <Separator className="mt-4" />
               <ul className="p-4">
                 {projectList(theme).map((project, idx) => {
                   return (
                     <li className="" key={`free-project-${project.title}`}>
-                      <EachProject {...project}></EachProject>
+                      <EachProject locale={locale} {...project}></EachProject>
                       {projectList(theme).length - 1 === idx || <Separator className="my-4" /> }
                     </li>
                   );

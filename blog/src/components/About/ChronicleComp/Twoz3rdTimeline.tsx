@@ -1,23 +1,28 @@
+import type { Locale } from '@/i18n';
 import type { StringKeyType } from '@/types/commonType.ts';
-import { EachProject } from '@/components/About/ChronicleComp/EachProject.tsx';
-import { Button } from '@/components/ui/button.tsx';
-import { Card, CardDescription, CardTitle } from '@/components/ui/card.tsx';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
-import { Separator } from '@/components/ui/separator.tsx';
-import { $theme } from '@/store/system.ts';
-import { Icon } from '@/components/ui/icon';
 import { useStore } from '@nanostores/react';
 import { motion } from 'framer-motion';
 // @flow
 import * as React from 'react';
 import { useEffect, useState } from 'react';
+import { EachProject } from '@/components/About/ChronicleComp/EachProject.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card.tsx';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
+import { Icon } from '@/components/ui/icon';
+import { Separator } from '@/components/ui/separator.tsx';
+import { aboutMessages } from '@/i18n/about';
+import { useI18n } from '@/i18n/react';
+import { $theme } from '@/store/system.ts';
 
 type Props = {
+  locale?: Locale;
   isOpen: StringKeyType<boolean>;
   handleOpenChange: (key: string) => void;
 };
 
-export function Twoz3rdTimeline({ isOpen, handleOpenChange }: Props) {
+export function Twoz3rdTimeline({ locale: initialLocale, isOpen, handleOpenChange }: Props) {
+  const { locale, t } = useI18n(initialLocale, aboutMessages);
   const theme = useStore($theme);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -27,7 +32,7 @@ export function Twoz3rdTimeline({ isOpen, handleOpenChange }: Props) {
 
   function projectList(mode: string) {
     return [
-      { title: '사내 공통 모듈화 프로젝트', duration: '2024.03 ~ 2024.08', desc: '사내에서 진행하고 있는 여러 프로젝트에서 반복되는 패턴, 모듈들이 많았지만 파편화되어있고 버전 컨트롤이 어려운 문제점이 있었습니다.\n이를 해결하기 위해 모듈들을 공통화하여 사내 Npm Nexus에 배포, 이를 각 프로젝트에서 npm install 하는 방식으로 변경하는 프로젝트입니다.\nMonorepo로 모듈 내에서 테스트할 수 있는 패키지도 포함하였습니다.', techStackIcon: isHydrated
+      { title: t('about.shared_modules_title', '사내 공통 모듈화 프로젝트'), duration: '2024.03 ~ 2024.08', desc: t('about.twoz3rd_project_1', '사내에서 진행하고 있는 여러 프로젝트에서 반복되는 패턴, 모듈들이 많았지만 파편화되어있고 버전 컨트롤이 어려운 문제점이 있었습니다.\n이를 해결하기 위해 모듈들을 공통화하여 사내 Npm Nexus에 배포, 이를 각 프로젝트에서 npm install 하는 방식으로 변경하는 프로젝트입니다.\nMonorepo로 모듈 내에서 테스트할 수 있는 패키지도 포함하였습니다.'), techStackIcon: isHydrated
         ? [
             { iconUrl: `/images/icon/tech-stack/${mode}/typescript.svg`, techName: 'Typescript' },
             { iconUrl: `/images/icon/tech-stack/${mode}/vuedotjs.svg`, techName: 'Vue' },
@@ -39,9 +44,9 @@ export function Twoz3rdTimeline({ isOpen, handleOpenChange }: Props) {
           ]
         : [] },
       {
-        title: 'FMS 리뉴얼',
+        title: t('about.fms_renewal_title', 'FMS 리뉴얼'),
         duration: '2024.02 ~ 2024.08',
-        desc: '기존 Nuxt2로 개발되어있던 FMS를 TS, Vue3, Vite 기반으로 변경하고 디자인, 설계 부분도 변경하여 솔루션화하는 프로젝트입니다.\n웹, 모바일 버전이 있으며 해당 프로젝트 기반으로 이후 납품될 FMS가 구성되었습니다.\n해당 프로젝트에서 프론트엔드 쪽 리드 개발자를 담당하였습니다.',
+        desc: t('about.twoz3rd_project_2', '기존 Nuxt2로 개발되어있던 FMS를 TS, Vue3, Vite 기반으로 변경하고 디자인, 설계 부분도 변경하여 솔루션화하는 프로젝트입니다.\n웹, 모바일 버전이 있으며 해당 프로젝트 기반으로 이후 납품될 FMS가 구성되었습니다.\n해당 프로젝트에서 프론트엔드 쪽 리드 개발자를 담당하였습니다.'),
         techStackIcon: isHydrated
           ? [
               { iconUrl: `/images/icon/tech-stack/${mode}/typescript.svg`, techName: 'Typescript' },
@@ -78,7 +83,7 @@ export function Twoz3rdTimeline({ isOpen, handleOpenChange }: Props) {
               {isOpen.twoz3rd
                 ? (<Icon icon="mingcute:up-line" className="w-4 h-4" />)
                 : (<Icon icon="mingcute:down-line" className="w-4 h-4" />)}
-              <span className="sr-only">Toggle</span>
+              <span className="sr-only">{t('about.toggle', 'Toggle')}</span>
             </Button>
           </CollapsibleTrigger>
         </div>
@@ -91,19 +96,19 @@ export function Twoz3rdTimeline({ isOpen, handleOpenChange }: Props) {
           <CollapsibleContent className="space-y-2">
             <Card className="project-card">
               <CardTitle className="px-4 pt-4">
-                트웬티온스 선임
+                {t('about.twoz_senior', '트웬티온스 선임')}
               </CardTitle>
               <CardDescription className="px-4 mt-1 project-card-desc">
-                선임으로 승진 이후에는 기존의 역할에 이어서 추가로 회사 내의 프론트엔드 쪽에서 공통 부분을 조금 더 집중하여 개발하는 역할을 맡았습니다.
+                {t('about.senior_intro', '선임으로 승진 이후에는 기존의 역할에 이어서 추가로 회사 내의 프론트엔드 쪽에서 공통 부분을 조금 더 집중하여 개발하는 역할을 맡았습니다.')}
                 {'\n'}
-                아래는 선임시절 맡았던 주요 프로젝트들입니다.
+                {t('about.senior_projects', '아래는 선임시절 맡았던 주요 프로젝트들입니다.')}
               </CardDescription>
               <Separator className="mt-4" />
               <ul className="p-4">
                 {projectList(theme).map((project, idx) => {
                   return (
                     <li className="" key={`twoz-3rd-project-${project.title}`}>
-                      <EachProject {...project}></EachProject>
+                      <EachProject locale={locale} {...project}></EachProject>
                       {projectList(theme).length - 1 === idx || <Separator className="my-4" /> }
                     </li>
                   );

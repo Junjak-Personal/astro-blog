@@ -3,36 +3,39 @@ import { Chronicle } from '@/components/About/Chronicle';
 import { SimpleIntro } from '@/components/About/SimpleIntro';
 import { TechStack } from '@/components/About/TechStack';
 import { UseTools } from '@/components/About/UseTools';
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
 // Component Imports
 import BaseLayout from '@/layouts/baseLayout.astro';
 import { Separator } from '../components/ui/separator';
 
 // Full Astro Component Syntax:
 // https://docs.astro.build/basics/astro-components/
-const description = 'About Jun — career history, tech stack, tools, and development journey';
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale);
+const description = t('site.about_description', 'About Jun — career history, tech stack, tools, and development journey');
 ---
 
-<BaseLayout title="About" description={description} keywords={['about', 'career', 'tech stack', 'developer']}>
+<BaseLayout title={t('site.about', 'About')} description={description} keywords={['about', 'career', 'tech stack', 'developer']}>
   <div class="container">
-    <h1 class="font-black">About</h1>
+    <h1 class="font-black">{t('site.about', 'About')}</h1>
     <hr class="title-divider" />
     <section class="simple-intro">
-      <SimpleIntro client:visible />
+      <SimpleIntro locale={locale} client:visible />
     </section>
 
     <Separator className="my-8" />
     <section class="tech-stack">
-      <TechStack client:visible />
+      <TechStack locale={locale} client:visible />
 
     </section>
     <Separator className="my-8" />
     <section class="chronicle">
-      <Chronicle client:visible />
+      <Chronicle locale={locale} client:visible />
 
     </section>
     <Separator className="my-8" />
     <section class="use-tool">
-      <UseTools client:visible />
+      <UseTools locale={locale} client:visible />
 
     </section>
     <!-- <Separator className="my-8" />

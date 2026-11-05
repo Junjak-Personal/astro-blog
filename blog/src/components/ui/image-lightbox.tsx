@@ -1,7 +1,11 @@
-import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
+import type { PanInfo } from 'framer-motion';
+import type { Locale } from '@/i18n';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 
 type LightboxItem = {
   src: string;
@@ -11,6 +15,7 @@ type LightboxItem = {
 
 type ImageLightboxProps = {
   images: LightboxItem[];
+  locale?: Locale;
   visible: boolean;
   index: number;
   onClose: () => void;
@@ -45,6 +50,7 @@ const slideVariants = {
 
 export function ImageLightbox({
   images,
+  locale,
   visible,
   index,
   onClose,
@@ -52,6 +58,7 @@ export function ImageLightbox({
   titleRender,
   toolbarRender,
 }: ImageLightboxProps) {
+  const { t } = useI18n(locale, contentMessages);
   const [direction, setDirection] = useState(0);
   const [zoomed, setZoomed] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -176,6 +183,8 @@ export function ImageLightbox({
           {/* Close button */}
           <button
             type="button"
+            data-testid="gallery-lightbox-close"
+            aria-label={t('content-gallery.close', '닫기')}
             onClick={onClose}
             className="absolute top-4 right-4 z-[110] rounded-full bg-black/50 p-2 text-white/80 backdrop-blur-sm transition hover:bg-black/70 hover:text-white"
           >
@@ -208,6 +217,8 @@ export function ImageLightbox({
           {canNavigate && (
             <button
               type="button"
+              data-testid="gallery-lightbox-previous"
+              aria-label={t('content-gallery.previous', '이전 사진')}
               onClick={(e) => {
                 e.stopPropagation();
                 goPrev();
@@ -222,6 +233,8 @@ export function ImageLightbox({
           {canNavigate && (
             <button
               type="button"
+              data-testid="gallery-lightbox-next"
+              aria-label={t('content-gallery.next', '다음 사진')}
               onClick={(e) => {
                 e.stopPropagation();
                 goNext();

@@ -1,5 +1,8 @@
 import type { PointerEvent, ReactNode } from 'react';
+import type { Locale } from '@/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { chromeMessages } from '@/i18n/chrome';
+import { useI18n } from '@/i18n/react';
 import { cn } from '@/lib/utils';
 
 interface IconCloudProps {
@@ -7,6 +10,7 @@ interface IconCloudProps {
   images?: string[];
   maxSize?: number;
   className?: string;
+  locale?: Locale;
 }
 
 type Point = { x: number; y: number; z: number; id: number };
@@ -48,7 +52,8 @@ function nearestAngle(current: number, target: number) {
   return current + Math.atan2(Math.sin(target - current), Math.cos(target - current));
 }
 
-export function IconCloud({ icons, images, maxSize = 600, className }: IconCloudProps) {
+export function IconCloud({ icons, images, maxSize = 600, className, locale }: IconCloudProps) {
+  const { t } = useI18n(locale, chromeMessages);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const rotationRef = useRef<Rotation>({ x: 0, y: 0 });
@@ -389,12 +394,12 @@ export function IconCloud({ icons, images, maxSize = 600, className }: IconCloud
           if (!event.currentTarget.hasPointerCapture(event.pointerId))
             dragRef.current = { status: 'idle' };
         }}
-        aria-label="Interactive 3D Icon Cloud"
+        aria-label={t('icon-cloud.label', 'Interactive 3D Icon Cloud')}
         data-testid="home-icon-cloud-canvas"
         role="img"
       />
-      {assetState === 'loading' && <span className="sr-only" role="status">Loading technology icons…</span>}
-      {assetState === 'error' && <p className="absolute inset-0 flex items-center justify-center text-muted-foreground" role="status">Technology icons could not be loaded.</p>}
+      {assetState === 'loading' && <span className="sr-only" role="status">{t('icon-cloud.loading', 'Loading technology icons…')}</span>}
+      {assetState === 'error' && <p className="absolute inset-0 flex items-center justify-center text-muted-foreground" role="status">{t('icon-cloud.error', 'Technology icons could not be loaded.')}</p>}
     </div>
   );
 }

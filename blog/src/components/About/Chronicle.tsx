@@ -1,9 +1,10 @@
+import type { Locale } from '@/i18n';
 import type { StringKeyType } from '@/types/commonType.ts';
 import { motion } from 'framer-motion';
-
 // @flow
 import * as React from 'react';
 import { FreeTimeline } from '@/components/About/ChronicleComp/FreeTimeline.tsx';
+
 import { QesgTimeline } from '@/components/About/ChronicleComp/QesgTimeline';
 import { Twoz1stTimeline } from '@/components/About/ChronicleComp/Twoz1stTimeline.tsx';
 import { Twoz2ndTimeline } from '@/components/About/ChronicleComp/Twoz2ndTimeline.tsx';
@@ -17,8 +18,11 @@ import {
   TimelineItem,
   TimelineLine,
 } from '@/components/ui/timeline';
+import { aboutMessages } from '@/i18n/about';
+import { useI18n } from '@/i18n/react';
 
-export function Chronicle() {
+export function Chronicle({ locale: initialLocale }: { locale?: Locale } = {}) {
+  const { locale, t } = useI18n(initialLocale, aboutMessages);
   const [isOpen, setIsOpen] = React.useState<StringKeyType<boolean>>({
     qesgTeamLead: false,
     qesgManager: false,
@@ -41,83 +45,83 @@ export function Chronicle() {
         viewport={{ once: true }}
         className="mb-4"
       >
-        Timeline
+        {t('about.timeline', 'Timeline')}
       </motion.h2>
       <p className="text-muted-foreground mb-4">
-        Vue.js를 주로 사용해 온 프론트엔드 개발자였지만,
+        {t('about.timeline_vue', 'Vue.js를 주로 사용해 온 프론트엔드 개발자였지만,')}
         <br />
-        AI 시대에 개발 영역 간의 경계가 허물어지면서 현재는 백엔드, 인프라, 설계까지 담당하고 있습니다.
+        {t('about.timeline_scope', 'AI 시대에 개발 영역 간의 경계가 허물어지면서 현재는 백엔드, 인프라, 설계까지 담당하고 있습니다.')}
         <br />
-        업무 외적으로는 Astro를 활용한 정적 페이지와 Flutter를 활용한 앱 개발 등 다양한 개인 프로젝트를 진행하고 있습니다.
+        {t('about.timeline_personal', '업무 외적으로는 Astro를 활용한 정적 페이지와 Flutter를 활용한 앱 개발 등 다양한 개인 프로젝트를 진행하고 있습니다.')}
         <br />
-        이하 현재까지의 경력사항 및 진행한 프로젝트입니다.
+        {t('about.timeline_summary', '이하 현재까지의 경력사항 및 진행한 프로젝트입니다.')}
         <br />
-        더 자세한 사항은
+        {t('about.resume_before', '더 자세한 사항은')}
         {' '}
-        <a href="https://memo.jun-devlog.win/ext/01M6KQ3X9KXJGEVP1PPYZC5NKX" target="_blank" rel="noopener noreferrer" className="resume-link ">이력서</a>
-        를 참고해주세요.
+        <a href="https://memo.jun-devlog.win/ext/01M6KQ3X9KXJGEVP1PPYZC5NKX" target="_blank" rel="noopener noreferrer" className="resume-link ">{t('about.resume_link', '이력서')}</a>
+        {t('about.resume_after', '를 참고해주세요.')}
       </p>
 
       <Timeline>
         <TimelineItem status="done">
 
-          <TimelineHeading>QESG 개발팀 팀 리더</TimelineHeading>
+          <TimelineHeading>{t('about.qesg_lead', 'QESG 개발팀 팀 리더')}</TimelineHeading>
           <TimelineDot status="current" />
           <TimelineLine done />
           <TimelineContent>
-            <QesgTimeline role="team-lead" isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <QesgTimeline locale={locale} role="team-lead" isOpen={isOpen} handleOpenChange={handleOpenChange} />
 
           </TimelineContent>
         </TimelineItem>
         <TimelineItem status="done">
-          <TimelineHeading>QESG 매니저</TimelineHeading>
+          <TimelineHeading>{t('about.qesg_manager', 'QESG 매니저')}</TimelineHeading>
           <TimelineDot status="default" />
           <TimelineLine done />
           <TimelineContent>
-            <QesgTimeline role="manager" isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <QesgTimeline locale={locale} role="manager" isOpen={isOpen} handleOpenChange={handleOpenChange} />
 
           </TimelineContent>
         </TimelineItem>
         <TimelineItem status="done">
 
-          <TimelineHeading>Free</TimelineHeading>
+          <TimelineHeading>{t('about.free', 'Free')}</TimelineHeading>
           <TimelineDot status="default" />
           <TimelineLine done />
           <TimelineContent>
-            <FreeTimeline isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <FreeTimeline locale={locale} isOpen={isOpen} handleOpenChange={handleOpenChange} />
 
           </TimelineContent>
         </TimelineItem>
         <TimelineItem status="done">
-          <TimelineHeading>트웬티온스 선임</TimelineHeading>
+          <TimelineHeading>{t('about.twoz_senior', '트웬티온스 선임')}</TimelineHeading>
           <TimelineDot status="default" />
           <TimelineLine done />
           <TimelineContent>
-            <Twoz3rdTimeline isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <Twoz3rdTimeline locale={locale} isOpen={isOpen} handleOpenChange={handleOpenChange} />
           </TimelineContent>
         </TimelineItem>
         <TimelineItem status="done">
-          <TimelineHeading>트웬티온스 전임</TimelineHeading>
+          <TimelineHeading>{t('about.twoz_associate', '트웬티온스 전임')}</TimelineHeading>
           <TimelineDot status="default" />
           <TimelineLine done />
           <TimelineContent>
-            <Twoz2ndTimeline isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <Twoz2ndTimeline locale={locale} isOpen={isOpen} handleOpenChange={handleOpenChange} />
           </TimelineContent>
         </TimelineItem>
         <TimelineItem status="done">
-          <TimelineHeading>트웬티온스 인턴</TimelineHeading>
+          <TimelineHeading>{t('about.twoz_intern', '트웬티온스 인턴')}</TimelineHeading>
           <TimelineDot status="default" />
           <TimelineLine done />
           <TimelineContent>
-            <Twoz1stTimeline isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <Twoz1stTimeline locale={locale} isOpen={isOpen} handleOpenChange={handleOpenChange} />
           </TimelineContent>
         </TimelineItem>
         <TimelineItem status="done">
-          <TimelineHeading>경희대학교 컴퓨터공학 학사</TimelineHeading>
+          <TimelineHeading>{t('about.university', '경희대학교 컴퓨터공학 학사')}</TimelineHeading>
           <TimelineDot status="default" />
           <TimelineLine done />
           <TimelineContent>
-            <UnivTimeline isOpen={isOpen} handleOpenChange={handleOpenChange} />
+            <UnivTimeline locale={locale} isOpen={isOpen} handleOpenChange={handleOpenChange} />
           </TimelineContent>
         </TimelineItem>
       </Timeline>

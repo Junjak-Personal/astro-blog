@@ -1,8 +1,11 @@
+import type { Locale } from '@/i18n';
 import type { BlogFrontMatter } from '@/types/commonType';
-import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 import dayJsRelativeTime from 'dayjs/plugin/relativeTime';
 import React, { useMemo } from 'react';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
+import { cn } from '@/lib/utils';
 import { srcSet, variant } from '@/utils/imageVariant';
 import BlogTags from './BlogTags';
 
@@ -11,12 +14,14 @@ dayjs.extend(dayJsRelativeTime);
 interface Props {
   frontmatter: BlogFrontMatter;
   url?: string;
+  locale?: Locale;
 }
 
-export default function EachArticle({ frontmatter, url }: Props) {
+export default function EachArticle({ frontmatter, url, locale: initialLocale }: Props) {
+  const { localizePath } = useI18n(initialLocale, contentMessages);
   const created = useMemo(() => {
     const today = dayjs();
-    const targetDate = dayjs(frontmatter.created);
+    const targetDate = dayjs(frontmatter.created).locale('en');
     const diff = today.diff(frontmatter.created, 'day') > 31;
     if (diff) {
       return targetDate.format('YYYY-MM-DD');
@@ -39,7 +44,7 @@ export default function EachArticle({ frontmatter, url }: Props) {
         'transform-gpu dark:bg-transparent dark:backdrop-blur-md dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]',
       )} article-wrapper`}
     >
-      <a href={url}>
+      <a href={url ? localizePath(url) : undefined}>
         <article className="blog-article">
 
           <img
@@ -53,7 +58,8 @@ export default function EachArticle({ frontmatter, url }: Props) {
             height={128}
             onError={(e) => {
               const t = e.currentTarget; const o = frontmatter.thumbnail ?? '';
-              if (t.dataset.fb === '2') return;
+              if (t.dataset.fb === '2')
+                return;
               if (t.dataset.fb === '1') { t.dataset.fb = '2'; t.src = '/fallbackImg.svg'; return; }
               t.dataset.fb = '1'; t.srcset = ''; t.src = o;
             }}

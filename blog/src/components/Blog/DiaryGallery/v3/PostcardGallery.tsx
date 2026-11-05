@@ -1,13 +1,19 @@
 'use client';
 
+import type { PolaroidImage } from './shared';
+import type { Locale } from '@/i18n';
 import { motion } from 'framer-motion';
+
 import { useEffect, useState } from 'react';
-import { type PolaroidImage, resolveThumb, round4, seeded } from './shared';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
+import { resolveThumb, round4, seeded } from './shared';
 import { TiltCard } from './TiltCard';
 import { V3LightboxShell } from './V3LightboxShell';
 import './v3.css';
 
-function PostcardStage({ item }: { item: PolaroidImage }) {
+function PostcardStage({ item, locale }: { item: PolaroidImage; locale: Locale }) {
+  const { t } = useI18n(locale, contentMessages);
   const [flipped, setFlipped] = useState(false);
 
   // reset to the photo side whenever the postcard changes
@@ -26,7 +32,8 @@ function PostcardStage({ item }: { item: PolaroidImage }) {
       <button
         type="button"
         className={`dgv3-pc-flip${flipped ? ' is-flipped' : ''}`}
-        aria-label={flipped ? '사진 보기' : '뒷면 보기'}
+        data-testid="gallery-postcard-flip"
+        aria-label={flipped ? t('content-gallery.photo', '사진 보기') : t('content-gallery.back', '뒷면 보기')}
         onClick={() => setFlipped((v) => !v)}
       >
         <div className="dgv3-pc-flip__inner">
@@ -54,12 +61,13 @@ function PostcardStage({ item }: { item: PolaroidImage }) {
           </div>
         </div>
       </button>
-      <p className="dgv3-pc-hint">{flipped ? '↺ 사진' : '엽서를 눌러 뒤집기 ✎'}</p>
+      <p className="dgv3-pc-hint">{flipped ? t('content-gallery.return_photo', '↺ 사진으로') : t('content-gallery.postcard_flip', '엽서를 눌러 뒤집기 ✎')}</p>
     </motion.div>
   );
 }
 
-export function PostcardGallery({ items }: { items: PolaroidImage[] }) {
+export function PostcardGallery({ items, locale: initialLocale }: { items: PolaroidImage[]; locale?: Locale }) {
+  const { locale } = useI18n(initialLocale, contentMessages);
   const [index, setIndex] = useState<number | null>(null);
 
   return (
@@ -87,8 +95,8 @@ export function PostcardGallery({ items }: { items: PolaroidImage[] }) {
         })}
       </div>
 
-      <V3LightboxShell count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
-        {(i) => <PostcardStage item={items[i]} />}
+      <V3LightboxShell locale={locale} count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
+        {(i) => <PostcardStage locale={locale} item={items[i]} />}
       </V3LightboxShell>
     </div>
   );

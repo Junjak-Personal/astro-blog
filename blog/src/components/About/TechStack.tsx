@@ -1,4 +1,10 @@
+import type { Locale } from '@/i18n';
 import type { TechIconType } from '@/types/commonType.ts';
+import { useStore } from '@nanostores/react';
+import { AnimatePresence, motion } from 'framer-motion';
+// @flow
+import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { TechIcon } from '@/components/About/TechStackComp/TechIcon.tsx';
 import {
   Card,
@@ -13,16 +19,14 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+
+import { aboutMessages } from '@/i18n/about';
+import { useI18n } from '@/i18n/react';
 import { $theme } from '@/store/system.ts';
 import getTechIcons from '@/utils/getTechIcons';
 
-import { useStore } from '@nanostores/react';
-import { AnimatePresence, motion } from 'framer-motion';
-// @flow
-import * as React from 'react';
-import { useEffect, useState } from 'react';
-
-export function TechStack() {
+export function TechStack({ locale: initialLocale }: { locale?: Locale } = {}) {
+  const { t } = useI18n(initialLocale, aboutMessages);
   const theme = useStore($theme);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -34,11 +38,34 @@ export function TechStack() {
     if (!isHydrated)
       return [];
     return getTechIcons([
-      'typescript', 'javascript', 'vue', 'nuxt', 'react', 'tailwindcss',
-      'pinia', 'zustand', 'nodedotjs', 'kotlin', 'spring',
-      'postgresql', 'redis', 'sqlite', 'flutter', 'dart', 'astro',
-      'docker', 'aws', 'terraform', 'storybook', 'vitest', 'playwright', 'pnpm', 'githubactions',
-      'claude', 'chatgpt', 'hermes',
+      'typescript',
+      'javascript',
+      'vue',
+      'nuxt',
+      'react',
+      'tailwindcss',
+      'pinia',
+      'zustand',
+      'nodedotjs',
+      'kotlin',
+      'spring',
+      'postgresql',
+      'redis',
+      'sqlite',
+      'flutter',
+      'dart',
+      'astro',
+      'docker',
+      'aws',
+      'terraform',
+      'storybook',
+      'vitest',
+      'playwright',
+      'pnpm',
+      'githubactions',
+      'claude',
+      'chatgpt',
+      'hermes',
     ], mode);
   }
 
@@ -46,8 +73,18 @@ export function TechStack() {
     if (!isHydrated)
       return [];
     return getTechIcons([
-      'docker', 'aws', 'flutter', 'kotlin', 'spring', 'postgresql', 'redis',
-      'claude', 'codex', 'hermes', 'tauri', 'rust',
+      'docker',
+      'aws',
+      'flutter',
+      'kotlin',
+      'spring',
+      'postgresql',
+      'redis',
+      'claude',
+      'codex',
+      'hermes',
+      'tauri',
+      'rust',
     ], mode);
   }
 
@@ -65,7 +102,7 @@ export function TechStack() {
         viewport={{ once: true }}
         className="mb-4"
       >
-        Tech Stack
+        {t('about.tech_stack', 'Tech Stack')}
       </motion.h2>
       <Tabs defaultValue="use" className="tech-stack-tabs">
         <TabsList className="grid w-full grid-cols-2 h-[3rem]">
@@ -74,7 +111,7 @@ export function TechStack() {
               className="text-lg font-normal"
               transition={{ delay: 0.6, duration: 0.5 }}
             >
-              Using
+              {t('about.using', 'Using')}
             </motion.div>
           </TabsTrigger>
           <TabsTrigger value="experiment" data-testid="about-tech-experiment-tab">
@@ -82,7 +119,7 @@ export function TechStack() {
               className="text-lg font-normal"
               transition={{ delay: 0.6, duration: 0.5 }}
             >
-              Experiment
+              {t('about.experiment', 'Experiment')}
             </motion.div>
           </TabsTrigger>
         </TabsList>
@@ -97,9 +134,9 @@ export function TechStack() {
             >
               <Card className="tech-stack-card">
                 <CardHeader>
-                  <CardTitle>Using</CardTitle>
+                  <CardTitle>{t('about.using', 'Using')}</CardTitle>
                   <CardDescription>
-                    회사 제품과 개인 프로젝트에서 현재 사용하는 기술입니다.
+                    {t('about.using_description', '회사 제품과 개인 프로젝트에서 현재 사용하는 기술입니다.')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -122,9 +159,9 @@ export function TechStack() {
             >
               <Card className="tech-stack-card">
                 <CardHeader>
-                  <CardTitle>Experiment</CardTitle>
+                  <CardTitle>{t('about.experiment', 'Experiment')}</CardTitle>
                   <CardDescription>
-                    사용 경험을 넓히거나 더 깊이 익히고 있는 기술과 AI 도구입니다.
+                    {t('about.experiment_description', '사용 경험을 넓히거나 더 깊이 익히고 있는 기술과 AI 도구입니다.')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

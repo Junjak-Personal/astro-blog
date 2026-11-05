@@ -1,11 +1,12 @@
 ---
+import { getCollection } from 'astro:content';
+import dayjs from 'dayjs';
 import Articles from '@/components/Blog/Articles';
 // Component Imports
 import { Skeleton } from '@/components/ui/skeleton';
-import BaseLayout from '@/layouts/baseLayout.astro';
-import { getCollection } from 'astro:content';
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
 
-import dayjs from 'dayjs';
+import BaseLayout from '@/layouts/baseLayout.astro';
 
 const posts = await getCollection('blog');
 posts.sort((a, b) => dayjs(b.data.created).unix() - dayjs(a.data.created).unix());
@@ -13,16 +14,18 @@ posts.sort((a, b) => dayjs(b.data.created).unix() - dayjs(a.data.created).unix()
 const categories = [...new Set(posts.map((p) => p.data.category))];
 const postsForClient = posts.map(({ body, ...rest }) => rest);
 const allTags = [...new Set(posts.flatMap((p) => p.data.tags || []))];
-const description = 'Articles on web development, game development, and developer diary';
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale);
+const description = t('site.blog_description', 'Articles on web development, game development, and developer diary');
 ---
 
-<BaseLayout title="Blog" description={description} keywords={allTags}>
+<BaseLayout title={t('site.blog', 'Blog')} description={description} keywords={allTags}>
   <div class="container">
-    <h1 class="font-black">Blog</h1>
+    <h1 class="font-black">{t('site.blog', 'Blog')}</h1>
     <hr class="title-divider" />
 
     <div id="articles-wrapper" class="mt-4">
-      <Articles posts={postsForClient} categories={categories} client:visible>
+      <Articles locale={locale} posts={postsForClient} categories={categories} client:visible>
         <div id="articles-skeleton" class="mt-8" slot="fallback">
           {[...Array.from({ length: 10 })].map((_) => (
             <div class="flex items-center space-x-4 h-[9.5rem]">

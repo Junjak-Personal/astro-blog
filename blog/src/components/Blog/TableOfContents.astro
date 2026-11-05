@@ -1,11 +1,16 @@
 ---
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { contentMessages } from '@/i18n/content';
+
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale, contentMessages);
 ---
 
 <Card className="post-table-of-contents">
   <CardHeader className="py-1">
-    <h3>Table of Contents</h3>
+    <h3>{t('blog-post.toc', 'Table of Contents')}</h3>
   </CardHeader>
   <Separator className="mb-4" />
   <CardContent className="toc-lists">
@@ -64,10 +69,12 @@ function observeHeadings() {
   tocObserver?.disconnect();
 
   const tocLinks = document.querySelectorAll<HTMLAnchorElement>('.toc-lists a');
-  if (tocLinks.length === 0) return;
+  if (tocLinks.length === 0)
+    return;
 
   const headings = document.querySelectorAll('.article-entry h2, .article-entry h3');
-  if (headings.length === 0) return;
+  if (headings.length === 0)
+    return;
 
   tocObserver = new IntersectionObserver(
     (entries) => {

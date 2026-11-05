@@ -25,7 +25,7 @@ const ICONS = {
   tabler: ['minus', 'plus', 'rotate'],
   'svg-spinners': ['bars-rotate-fade'],
   'qlementine-icons': ['resume-16'],
-  'material-symbols': ['visibility-off', 'center-focus-strong', 'article-outline', 'work-outline', 'science-outline'],
+  'material-symbols': ['translate', 'check', 'visibility-off', 'center-focus-strong', 'article-outline', 'work-outline', 'science-outline'],
 };
 
 const lines = [

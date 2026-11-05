@@ -1,4 +1,4 @@
-import { Icon } from '@/components/ui/icon';
+import type { Locale } from '@/i18n';
 import { motion } from 'framer-motion';
 // @flow
 import * as React from 'react';
@@ -9,6 +9,9 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button.tsx';
+import { Icon } from '@/components/ui/icon';
+import { aboutMessages } from '@/i18n/about';
+import { useI18n } from '@/i18n/react';
 import { cn } from '@/lib/utils.ts';
 
 const titleFramer = {
@@ -20,7 +23,8 @@ const contentFramer = {
   visible: { opacity: 1, x: 0 },
 };
 
-export function SimpleIntro() {
+export function SimpleIntro({ locale: initialLocale }: { locale?: Locale } = {}) {
+  const { t } = useI18n(initialLocale, aboutMessages);
   return (
     <motion.section layout className="simple-intro">
       <div className="simple-intro-wrapper">
@@ -40,7 +44,7 @@ export function SimpleIntro() {
         >
           <div className="flex justify-center">
             <Avatar className="size-52 bg-zinc-200 dark:bg-zinc-800">
-              <AvatarImage src={profileImg.src} alt="서점에서 책을 읽는 윤준현" className="object-cover scale-150 origin-[50%_60%]" />
+              <AvatarImage src={profileImg.src} alt={t('about.profile_alt', '서점에서 책을 읽는 윤준현')} className="object-cover scale-150 origin-[50%_60%]" />
               <AvatarFallback>MY</AvatarFallback>
             </Avatar>
           </div>
@@ -49,10 +53,10 @@ export function SimpleIntro() {
             Yoon JunHyeon
           </div>
           <div className="desc text-zinc-500 dark:text-zinc-400">
-            Software Developer · Team Lead
+            {t('about.profile_role', 'Software Developer · Team Lead')}
           </div>
           <div className="desc text-zinc-500 dark:text-zinc-400">
-            Currently - QESG
+            {t('about.profile_current', 'Currently - QESG')}
           </div>
           <div className="flex items-center justify-center">
             <Button variant="ghost" size="icon" asChild>
@@ -61,12 +65,12 @@ export function SimpleIntro() {
               </a>
             </Button>
             <Button variant="ghost" size="icon" asChild>
-              <a href="mailto:haring157@gmail.com" aria-label="Email">
+              <a href="mailto:haring157@gmail.com" aria-label={t('about.email', 'Email')}>
                 <Icon icon="mingcute:mail-fill" className="icon size-5 shrink-0 text-gray-700 dark:text-gray-300" />
               </a>
             </Button>
             <Button variant="ghost" size="icon" asChild>
-              <a href="https://memo.jun-devlog.win/ext/01M6KQ3X9KXJGEVP1PPYZC5NKX" aria-label="Resume">
+              <a href="https://memo.jun-devlog.win/ext/01M6KQ3X9KXJGEVP1PPYZC5NKX" aria-label={t('about.resume', 'Resume')}>
                 <Icon icon="mingcute:profile-fill" className="icon size-5 shrink-0 text-gray-700 dark:text-gray-300" />
               </a>
             </Button>
@@ -81,7 +85,7 @@ export function SimpleIntro() {
             animate="visible"
             exit="hidden"
           >
-            Hi, I'm JunHyeon
+            {t('about.greeting', 'Hi, I\'m JunHyeon')}
           </motion.h3>
           <motion.div
             initial="hidden"
@@ -92,7 +96,7 @@ export function SimpleIntro() {
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300 ">
-              저는 게임과 서브컬쳐, 그리고 일본 여행을 좋아하는 소프트웨어 개발자입니다.
+              {t('about.intro_personal', '저는 게임과 서브컬쳐, 그리고 일본 여행을 좋아하는 소프트웨어 개발자입니다.')}
             </p>
           </motion.div>
 
@@ -105,13 +109,13 @@ export function SimpleIntro() {
             transition={{ delay: 0.6, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              직접 만든 기능이 화면에서 바로 반응하는 재미에 프론트엔드 개발을 시작했습니다.
+              {t('about.intro_start', '직접 만든 기능이 화면에서 바로 반응하는 재미에 프론트엔드 개발을 시작했습니다.')}
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              AI 시대에 개발 영역 간의 경계가 허물어지면서,
+              {t('about.intro_ai', 'AI 시대에 개발 영역 간의 경계가 허물어지면서,')}
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              현재는 프론트엔드뿐 아니라 백엔드, 인프라, 설계까지 맡고 있습니다.
+              {t('about.intro_scope', '현재는 프론트엔드뿐 아니라 백엔드, 인프라, 설계까지 맡고 있습니다.')}
             </p>
           </motion.div>
 
@@ -124,10 +128,10 @@ export function SimpleIntro() {
             transition={{ delay: 1, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              다양하고 새로운 기술을 사용하여 생산성을 올리는 것에 큰 관심을 가지고 있고,
+              {t('about.intro_technology', '다양하고 새로운 기술을 사용하여 생산성을 올리는 것에 큰 관심을 가지고 있고,')}
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              여러 아티클, 유튜브 등을 보며 최신 기술 동향을 파악하려고 노력하고 있습니다.
+              {t('about.intro_learning', '여러 아티클, 유튜브 등을 보며 최신 기술 동향을 파악하려고 노력하고 있습니다.')}
             </p>
           </motion.div>
 
@@ -140,10 +144,10 @@ export function SimpleIntro() {
             transition={{ delay: 1.4, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              최근에는 멀티 에이전트 오케스트레이션과 저에게 맞는 하네스 구조를 정착시키는 데 관심을 두고,
+              {t('about.intro_agents', '최근에는 멀티 에이전트 오케스트레이션과 저에게 맞는 하네스 구조를 정착시키는 데 관심을 두고,')}
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              개인 프로젝트를 꾸준히 진행하는 데 힘쓰고 있습니다.
+              {t('about.intro_projects', '개인 프로젝트를 꾸준히 진행하는 데 힘쓰고 있습니다.')}
             </p>
           </motion.div>
 
@@ -156,10 +160,10 @@ export function SimpleIntro() {
             transition={{ delay: 1.8, duration: 0.5 }}
           >
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              이 블로그는 예전부터 기술 블로그를 만들어 보고 싶었던 소망을 이루기 위해,
+              {t('about.intro_blog_reason', '이 블로그는 예전부터 기술 블로그를 만들어 보고 싶었던 소망을 이루기 위해,')}
             </p>
             <p className="desc text-zinc-700 dark:text-zinc-300">
-              그리고 새로운 기술을 써서 개인 프로젝트를 진행해보자! 라는 모토로 만들어졌습니다.
+              {t('about.intro_blog_motto', '그리고 새로운 기술을 써서 개인 프로젝트를 진행해보자! 라는 모토로 만들어졌습니다.')}
             </p>
           </motion.div>
         </div>

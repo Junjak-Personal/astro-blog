@@ -1,4 +1,9 @@
 ---
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { contentMessages } from '@/i18n/content';
+
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale, contentMessages);
 type DrinkKind = 'nihonshu' | 'whisky' | 'beer' | 'other';
 
 type TokuteiMeisho =
@@ -26,7 +31,6 @@ interface Props {
 
 interface Spec {
   label: string;
-  gloss: string;
   value: string;
 }
 
@@ -54,19 +58,19 @@ const isNihonshu = drinkKind === 'nihonshu';
 // 값 있는 스펙 행만 (strict tsc: 타입 프레디킷 필터)
 const specs = [
   riceType && riceType.length > 0
-    ? { label: '酒米', gloss: '원료미', value: riceType.join(', ') }
+    ? { label: t('tasting-note.rice', '원료미'), value: riceType.join(', ') }
     : null,
   seimaiBuai != null
-    ? { label: '精米歩合', gloss: '정미보합', value: `${seimaiBuai}%` }
+    ? { label: t('tasting-note.polish', '정미보합'), value: `${seimaiBuai}%` }
     : null,
   nihonshuDo != null
-    ? { label: '日本酒度', gloss: '일본주도', value: nihonshuDo > 0 ? `+${nihonshuDo}` : `${nihonshuDo}` }
+    ? { label: t('tasting-note.sake_meter', '일본주도'), value: nihonshuDo > 0 ? `+${nihonshuDo}` : `${nihonshuDo}` }
     : null,
   sando != null
-    ? { label: '酸度', gloss: '산도', value: `${sando}` }
+    ? { label: t('tasting-note.acidity', '산도'), value: `${sando}` }
     : null,
   alcohol != null
-    ? { label: 'アルコール', gloss: '도수', value: `${alcohol}%` }
+    ? { label: t('tasting-note.alcohol', '도수'), value: `${alcohol}%` }
     : null,
 ].filter((s): s is Spec => Boolean(s));
 
@@ -75,7 +79,7 @@ const mapPoint = amakara != null && noutan != null && amakara >= 1 && noutan >= 
   ? {
       left: ((amakara - 1) / 7) * 100,
       top: ((8 - noutan) / 7) * 100,
-      caption: `甘辛 ${amakara}/8 · 濃淡 ${noutan}/8`,
+      caption: t('tasting-note.map_caption', '단맛·드라이 {amakara}/8 · 농도 {noutan}/8', { amakara, noutan }),
     }
   : null;
 
@@ -93,7 +97,7 @@ const flavors = flavorTags ?? [];
                 ? <ruby>{brewery}<rt>{breweryYomigana}</rt></ruby>
                 : brewery}
             </span>
-            <span class="ml-1 text-xs text-muted-foreground">酒蔵 · 양조장</span>
+            <span class="ml-1 text-xs text-muted-foreground">{t('tasting-note.brewery', '양조장')}</span>
           </span>
         )}
         {tokuteiMeisho && (
@@ -109,8 +113,7 @@ const flavors = flavorTags ?? [];
         {prefecture && (
           <Fragment>
             <dt class="text-muted-foreground">
-              産地
-              <span class="ml-1 text-xs">산지</span>
+              {t('tasting-note.region', '산지')}
             </dt>
             <dd class="text-foreground">{prefecture}</dd>
           </Fragment>
@@ -118,8 +121,7 @@ const flavors = flavorTags ?? [];
         {brand && (
           <Fragment>
             <dt class="text-muted-foreground">
-              銘柄
-              <span class="ml-1 text-xs">브랜드</span>
+              {t('tasting-note.brand', '브랜드')}
             </dt>
             <dd class="text-foreground">
               {brandYomigana
@@ -131,8 +133,7 @@ const flavors = flavorTags ?? [];
         {yomigana && (
           <Fragment>
             <dt class="text-muted-foreground">
-              読み
-              <span class="ml-1 text-xs">읽기</span>
+              {t('tasting-note.reading', '읽기')}
             </dt>
             <dd class="text-foreground">{yomigana}</dd>
           </Fragment>
@@ -141,7 +142,6 @@ const flavors = flavorTags ?? [];
           <Fragment>
             <dt class="text-muted-foreground">
               {spec.label}
-              <span class="ml-1 text-xs">{spec.gloss}</span>
             </dt>
             <dd class="tabular-nums text-foreground">{spec.value}</dd>
           </Fragment>
@@ -162,10 +162,10 @@ const flavors = flavorTags ?? [];
     {mapPoint && (
       <figure class="tasting-map-figure flex flex-col items-center gap-2">
         <div class="tasting-map">
-          <span class="tasting-map__pole tasting-map__pole--top">濃醇</span>
-          <span class="tasting-map__pole tasting-map__pole--bottom">淡麗</span>
-          <span class="tasting-map__pole tasting-map__pole--left">甘口</span>
-          <span class="tasting-map__pole tasting-map__pole--right">辛口</span>
+          <span class="tasting-map__pole tasting-map__pole--top">{t('tasting-note.rich', '진한 맛')}</span>
+          <span class="tasting-map__pole tasting-map__pole--bottom">{t('tasting-note.light', '가벼운 맛')}</span>
+          <span class="tasting-map__pole tasting-map__pole--left">{t('tasting-note.sweet', '단맛')}</span>
+          <span class="tasting-map__pole tasting-map__pole--right">{t('tasting-note.dry', '드라이')}</span>
           <span
             class="tasting-map__point"
             style={`left:${mapPoint.left}%;top:${mapPoint.top}%`}

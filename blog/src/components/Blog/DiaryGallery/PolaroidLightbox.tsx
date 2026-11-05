@@ -1,7 +1,10 @@
-import { motion } from 'framer-motion';
+import type { Locale } from '@/i18n';
 import { useStore } from '@nanostores/react';
+import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { ImageLightbox } from '@/components/ui/image-lightbox';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 import {
   $polaroidLightbox,
   closePolaroidLightbox,
@@ -10,11 +13,13 @@ import {
 
 type DescriptionDrawerProps = {
   description?: string;
+  locale: Locale;
   index: number;
   visible: boolean;
 };
 
-function PolaroidDescriptionDrawer({ description, index, visible }: DescriptionDrawerProps) {
+function PolaroidDescriptionDrawer({ description, index, visible, locale }: DescriptionDrawerProps) {
+  const { t } = useI18n(locale, contentMessages);
   const [expanded, setExpanded] = useState(false);
   const [expandedHeight, setExpandedHeight] = useState(288);
 
@@ -38,6 +43,8 @@ function PolaroidDescriptionDrawer({ description, index, visible }: DescriptionD
   return (
     <motion.button
       type="button"
+      data-testid="gallery-description-toggle"
+      aria-label={t('content-gallery.description', '사진 설명 펼치기 또는 접기')}
       data-polaroid-description-drawer
       aria-expanded={expanded}
       initial={false}
@@ -65,7 +72,8 @@ function PolaroidDescriptionDrawer({ description, index, visible }: DescriptionD
   );
 }
 
-export function PolaroidLightbox() {
+export function PolaroidLightbox({ locale: initialLocale }: { locale?: Locale }) {
+  const { locale } = useI18n(initialLocale, contentMessages);
   const state = useStore($polaroidLightbox);
 
   const lightboxItems = state.items.map((item) => ({
@@ -75,6 +83,7 @@ export function PolaroidLightbox() {
 
   return (
     <ImageLightbox
+      locale={locale}
       images={lightboxItems}
       visible={state.visible}
       index={state.index}
@@ -87,6 +96,7 @@ export function PolaroidLightbox() {
       )}
       toolbarRender={({ index }) => (
         <PolaroidDescriptionDrawer
+          locale={locale}
           description={state.items[index]?.description}
           index={index}
           visible={state.visible}

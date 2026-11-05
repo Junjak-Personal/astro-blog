@@ -1,9 +1,12 @@
 ---
 import { Button } from '@/components/ui/button';
-import BaseLayout from '@/layouts/baseLayout.astro';
 import { Icon } from '@/components/ui/icon';
+import { createTranslator, getLocaleFromUrl, localizePath } from '@/i18n';
+import BaseLayout from '@/layouts/baseLayout.astro';
 
-const description = 'Page not found';
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale);
+const description = t('site.not_found', 'Page Not Found');
 ---
 
 <BaseLayout title="404" description={description}>
@@ -19,12 +22,12 @@ const description = 'Page not found';
 
 
         <h2 class="text-center">
-          Page Not Found
+          {t('site.not_found', 'Page Not Found')}
         </h2>
         <div class="text-center mt-4">
-          <Button variant="default">
-            <a href="/">
-              Back to Home
+          <Button variant="default" asChild>
+            <a href={localizePath('/', locale)} data-testid="not-found-home-link">
+              {t('site.back_home', 'Back to Home')}
             </a>
           </Button>
         </div>

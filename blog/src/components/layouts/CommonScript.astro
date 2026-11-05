@@ -38,3 +38,22 @@ document.addEventListener('astro:page-load', () => {
   }
 });
 </script>
+
+<!-- Preserve the selected locale for links authored in the original posts. -->
+<script>
+import { getLocaleFromUrl, localizePath } from '@/i18n';
+
+function localizeArticleLinks() {
+  const locale = getLocaleFromUrl(window.location.href);
+  document.querySelectorAll<HTMLAnchorElement>('.article-entry a[href]').forEach((anchor) => {
+    const href = anchor.getAttribute('href');
+    if (!href || href.startsWith('#') || anchor.hasAttribute('download'))
+      return;
+    const url = new URL(href, window.location.href);
+    if (url.origin !== window.location.origin)
+      return;
+    anchor.href = localizePath(`${url.pathname}${url.search}${url.hash}`, locale);
+  });
+}
+document.addEventListener('astro:page-load', localizeArticleLinks);
+</script>

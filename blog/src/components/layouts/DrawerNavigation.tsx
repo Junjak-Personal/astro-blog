@@ -1,3 +1,5 @@
+import type { Locale } from '@/i18n';
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -8,12 +10,13 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { AnimatePresence, motion } from 'motion/react';
-import * as React from 'react';
+import { chromeMessages } from '@/i18n/chrome';
+import { useI18n } from '@/i18n/react';
 
 type Props = {
   children: React.ReactNode;
   tab: string;
+  locale?: Locale;
 };
 
 const NAVIGATION_ITEMS = [
@@ -24,36 +27,8 @@ const NAVIGATION_ITEMS = [
   { id: 'about', path: 'about', label: 'About' },
 ] as const;
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 300, damping: 30, staggerChildren: 0.1, delayChildren: 0.2 },
-  },
-  exit: { opacity: 0, y: 20 },
-};
-
-const headerVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 300, damping: 30, delay: 0.1 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: { type: 'spring' as const, stiffness: 300, damping: 30 },
-  },
-};
-
-export function DrawerNavigation({ children, tab }: Props) {
+export function DrawerNavigation({ children, tab, locale }: Props) {
+  const { t, localizePath } = useI18n(locale, chromeMessages);
   const [isOpen, setIsOpen] = React.useState(false);
 
   const checkRoute = React.useCallback((route: string) => {
@@ -66,51 +41,24 @@ export function DrawerNavigation({ children, tab }: Props) {
         <div>{children}</div>
       </DrawerTrigger>
       <DrawerContent>
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="w-full"
-            >
-              <DrawerHeader>
-                <motion.div
-                  variants={headerVariants}
-                  className="w-full"
-                >
-                  <DrawerTitle>
-                    Navigation Menu
-                  </DrawerTitle>
-                  <DrawerDescription>Click to navigate other pages!</DrawerDescription>
-                </motion.div>
-              </DrawerHeader>
-              <DrawerFooter className="flex flex-col gap-2">
-                {NAVIGATION_ITEMS.map(({ id, path, label }) => (
-                  <motion.div
-                    key={id}
-                    variants={itemVariants}
-                    className="w-full"
-                  >
-                    <Button
-                      variant={checkRoute(id)}
-                      asChild
-                      className="w-full"
-                    >
-                      <a
-                        href={path === '' ? '/' : `/${path}/`}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        {label}
-                      </a>
-                    </Button>
-                  </motion.div>
-                ))}
-              </DrawerFooter>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <DrawerHeader>
+          <DrawerTitle>{t('navigation.menu_title', 'Navigation Menu')}</DrawerTitle>
+          <DrawerDescription>{t('navigation.menu_description', 'Click to navigate other pages!')}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerFooter className="flex flex-col gap-2">
+          {NAVIGATION_ITEMS.map(({ id, path, label }) => (
+            <Button key={id} variant={checkRoute(id)} asChild className="w-full">
+              <a
+                href={localizePath(path === '' ? '/' : `/${path}/`)}
+                aria-current={tab === id ? 'page' : undefined}
+                data-testid={`navigation-mobile-${id}-link`}
+                onClick={() => setIsOpen(false)}
+              >
+                {t(`navigation.${id}_label`, label)}
+              </a>
+            </Button>
+          ))}
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

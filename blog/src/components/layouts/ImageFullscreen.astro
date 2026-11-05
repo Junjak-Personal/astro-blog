@@ -1,4 +1,8 @@
 ---
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { chromeMessages } from '@/i18n/chrome';
+
+const t = createTranslator(getLocaleFromUrl(Astro.url), chromeMessages);
 /**
  * Global fullscreen image viewer with zoom & pan.
  * Pure vanilla JS — zero framework, zero hydration.
@@ -12,7 +16,7 @@
 <div id="img-fullscreen" transition:persist="img-fullscreen">
   <div class="ifs-backdrop"></div>
   <img class="ifs-img" />
-  <button class="ifs-close" aria-label="Close fullscreen">
+  <button class="ifs-close" aria-label={t('viewer.close', 'Close fullscreen')} data-testid="viewer-fullscreen-close">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
@@ -98,6 +102,16 @@
 </style>
 
 <script>
+  import { createTranslator, getLocaleFromUrl } from '@/i18n';
+  import { chromeMessages } from '@/i18n/chrome';
+
+  function updateViewerLanguage() {
+    const t = createTranslator(getLocaleFromUrl(window.location.href), chromeMessages);
+    document.querySelector('.ifs-close')?.setAttribute('aria-label', t('viewer.close', 'Close fullscreen'));
+  }
+  updateViewerLanguage();
+  document.addEventListener('astro:after-swap', updateViewerLanguage);
+
   const root = document.getElementById('img-fullscreen')!;
   const backdrop = root.querySelector<HTMLElement>('.ifs-backdrop')!;
   const img = root.querySelector<HTMLImageElement>('.ifs-img')!;

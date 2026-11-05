@@ -1,8 +1,13 @@
 'use client';
 
+import type { PolaroidImage } from './shared';
+import type { Locale } from '@/i18n';
 import { motion } from 'framer-motion';
+
 import { useState } from 'react';
-import { type PolaroidImage, resolveThumb, round4, seeded } from './shared';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
+import { resolveThumb, round4, seeded } from './shared';
 import { V3LightboxShell } from './V3LightboxShell';
 import './v3.css';
 
@@ -30,7 +35,8 @@ function PageStage({ item }: { item: PolaroidImage }) {
   );
 }
 
-export function JournalGallery({ items }: { items: PolaroidImage[] }) {
+export function JournalGallery({ items, locale: initialLocale }: { items: PolaroidImage[]; locale?: Locale }) {
+  const { locale } = useI18n(initialLocale, contentMessages);
   const [index, setIndex] = useState<number | null>(null);
 
   return (
@@ -46,6 +52,7 @@ export function JournalGallery({ items }: { items: PolaroidImage[] }) {
                 key={item.src}
                 type="button"
                 className="dgv3-journal-photo"
+                data-testid={`gallery-photo-open-${i}`}
                 aria-label={item.title}
                 style={{ '--card-rotate': `${rotate}deg`, '--tape-rotate': `${tapeRotate}deg` } as React.CSSProperties}
                 onClick={() => setIndex(i)}
@@ -61,7 +68,7 @@ export function JournalGallery({ items }: { items: PolaroidImage[] }) {
         </div>
       </div>
 
-      <V3LightboxShell count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
+      <V3LightboxShell locale={locale} count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
         {(i) => <PageStage item={items[i]} />}
       </V3LightboxShell>
     </div>

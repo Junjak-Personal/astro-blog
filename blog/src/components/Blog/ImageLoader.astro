@@ -1,9 +1,14 @@
 ---
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { contentMessages } from '@/i18n/content';
 // Lightweight server-rendered <img> for MDX blog posts (no client JS).
 // Displays a downscaled webp variant (lighter); clicking opens the original
 // full-res via the global ImageFullscreen handler (reads data-full).
 // For lens zoom on hover, use ImageLoader.tsx with client:visible instead.
 import { size, srcSet, variant } from '@/utils/imageVariant';
+
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale, contentMessages);
 
 type Props = {
   src?: string;
@@ -13,7 +18,7 @@ type Props = {
   height?: number;
 };
 
-const { src = '', alt = 'blog-image', class: className, width, height } = Astro.props;
+const { src = '', alt = t('blog-post.image', 'blog-image'), class: className, width, height } = Astro.props;
 
 const display = variant(src, 960); // inline images render larger than gallery → 960 default
 const set = srcSet(src, [480, 960, 1600]);

@@ -1,18 +1,23 @@
+import type { Locale } from '@/i18n';
 // React island with Lens zoom on hover (desktop only).
 // Use with client:visible in Astro/MDX. For static images without
 // lens, use ImageLoader.astro instead.
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Lens } from '@/components/ui/lens';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 import { isMobileUA } from '@/utils/device';
 import { size, srcSet, variant } from '@/utils/imageVariant';
 
 type ImageLoaderProps = {
   src?: string;
+  locale?: Locale;
   alt?: string;
 } & React.ImgHTMLAttributes<HTMLImageElement>;
 
-export default function ImageLoader({ src = '', alt = 'blog-image', width, height, className, style, ...props }: ImageLoaderProps) {
+export default function ImageLoader({ src = '', alt, locale, width, height, className, style, ...props }: ImageLoaderProps) {
+  const { t } = useI18n(locale, contentMessages);
   const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
@@ -30,7 +35,7 @@ export default function ImageLoader({ src = '', alt = 'blog-image', width, heigh
       src={display}
       srcSet={set}
       sizes="(max-width: 768px) 92vw, 720px"
-      alt={alt}
+      alt={alt ?? t('blog-post.image', 'blog-image')}
       loading="lazy"
       decoding="async"
       data-lightbox=""
@@ -43,7 +48,8 @@ export default function ImageLoader({ src = '', alt = 'blog-image', width, heigh
         // variant → original → fallback, terminal (dataset flag avoids reload loop:
         // IDL t.src is absolute so a relative compare never ends).
         const t = e.currentTarget;
-        if (t.dataset.fb === '2') return;
+        if (t.dataset.fb === '2')
+          return;
         if (t.dataset.fb === '1') { t.dataset.fb = '2'; t.src = '/fallbackImg.svg'; return; }
         t.dataset.fb = '1'; t.srcset = ''; t.src = full ?? '/fallbackImg.svg';
       }}

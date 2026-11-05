@@ -1,8 +1,13 @@
 'use client';
 
+import type { PolaroidImage } from './shared';
+import type { Locale } from '@/i18n';
 import { motion } from 'framer-motion';
+
 import { useState } from 'react';
-import { type PolaroidImage, resolveThumb } from './shared';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
+import { resolveThumb } from './shared';
 import { TiltCard } from './TiltCard';
 import { V3LightboxShell } from './V3LightboxShell';
 import './v3.css';
@@ -31,7 +36,8 @@ function SlideStage({ item, index }: { item: PolaroidImage; index: number }) {
   );
 }
 
-export function FilmStripGallery({ items }: { items: PolaroidImage[] }) {
+export function FilmStripGallery({ items, locale: initialLocale }: { items: PolaroidImage[]; locale?: Locale }) {
+  const { locale } = useI18n(initialLocale, contentMessages);
   const [index, setIndex] = useState<number | null>(null);
 
   return (
@@ -45,6 +51,7 @@ export function FilmStripGallery({ items }: { items: PolaroidImage[] }) {
               type="button"
               role="listitem"
               className="dgv3-film-frame"
+              data-testid={`gallery-photo-open-${i}`}
               aria-label={item.title}
               onClick={() => setIndex(i)}
             >
@@ -56,7 +63,7 @@ export function FilmStripGallery({ items }: { items: PolaroidImage[] }) {
         <span className="dgv3-film-strip__sprockets dgv3-film-strip__sprockets--bottom" aria-hidden="true" />
       </div>
 
-      <V3LightboxShell count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
+      <V3LightboxShell locale={locale} count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
         {(i) => <SlideStage item={items[i]} index={i} />}
       </V3LightboxShell>
     </div>

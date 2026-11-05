@@ -102,6 +102,41 @@
 </style>
 
 <script>
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { chromeMessages } from '@/i18n/chrome';
+import baseTips from '../../../public/live2d/waifu-tips.json';
+
+function widgetTranslator() {
+  return createTranslator(getLocaleFromUrl(window.location.href), chromeMessages);
+}
+
+function localizedTipsPath() {
+  const t = widgetTranslator();
+  const timeKeys: Record<string, string> = {
+    '6-7': 'morning_early',
+    '8-11': 'morning',
+    '12-13': 'lunch',
+    '14-17': 'afternoon',
+    '18-19': 'sunset',
+    '20-21': 'evening',
+    '22-23': 'night',
+    '0-5': 'late_night',
+  };
+  const tips = {
+    ...baseTips,
+    click: baseTips.click.map((item) => ({ ...item, text: [t('live2d.hello', 'こんにちは！')] })),
+    time: baseTips.time.map((item) => ({ ...item, text: t(`live2d.${timeKeys[item.hour]}`, Array.isArray(item.text) ? item.text[0] : item.text) })),
+    message: {
+      ...baseTips.message,
+      default: [t('live2d.hello', 'こんにちは！')],
+      visibilitychange: t('live2d.welcome_back', 'やった！ やっと帰ってきたよ～'),
+      photo: t('live2d.photo_message', '写真を保存します！'),
+      goodbye: t('live2d.goodbye', 'また会いましょう！'),
+    },
+  };
+  return `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(tips))}`;
+}
+
 const CDN = 'https://fastly.jsdelivr.net/npm/live2d-widgets@1.0.0/dist/';
 const CACHE_NAME = 'live2d-assets-v1';
 
@@ -181,12 +216,29 @@ function loadModule(url: string) {
 }
 
 function replaceIcons() {
+  const t = widgetTranslator();
+  const labels: Record<string, string> = {
+    'waifu-tool-switch-model': t('live2d.switch_model', '캐릭터 변경'),
+    'waifu-tool-photo': t('live2d.photo', '캐릭터 사진 저장'),
+    'waifu-tool-info': t('live2d.info', 'Live2D 위젯 정보'),
+    'waifu-tool-quit': t('live2d.quit', '캐릭터 숨기기'),
+  };
   for (const [id, svg] of Object.entries(ICONS)) {
     const el = document.getElementById(id);
-    if (el) el.innerHTML = svg;
+    if (el) {
+      el.innerHTML = svg;
+      el.title = labels[id];
+      el.setAttribute('aria-label', labels[id]);
+      el.dataset.testid = id;
+    }
   }
   const toggle = document.getElementById('waifu-toggle');
-  if (toggle) toggle.innerHTML = TOGGLE_ICON;
+  if (toggle) {
+    toggle.innerHTML = TOGGLE_ICON;
+    toggle.title = t('live2d.show', '캐릭터 표시');
+    toggle.setAttribute('aria-label', t('live2d.show', '캐릭터 표시'));
+    toggle.dataset.testid = 'live2d-character-show';
+  }
 }
 
 // --- Drag position persistence ---
@@ -230,8 +282,11 @@ function waitForWidgetReady(maxRetries = 30) {
   check();
 }
 
+type WidgetWindow = Window & { initWidget?: (config: typeof WIDGET_CONFIG) => void };
+const widgetWindow = window as WidgetWindow;
+
 function startWidget() {
-  (window as any).initWidget(WIDGET_CONFIG);
+  widgetWindow.initWidget?.({ ...WIDGET_CONFIG, waifuPath: localizedTipsPath() });
   waitForWidgetReady();
 }
 
@@ -254,7 +309,7 @@ document.addEventListener('astro:page-load', () => {
 
   cleanup();
 
-  if ((window as any).initWidget) {
+  if (widgetWindow.initWidget) {
     // CDN already loaded — just ensure CSS and re-init
     loadCSS(`${CDN}waifu.css`);
     startWidget();
@@ -273,7 +328,7 @@ document.addEventListener(
   'click',
   (e) => {
     const target = (e.target as Element).closest('#waifu-toggle');
-    if (!target || !(window as any).initWidget) return;
+    if (!target || !widgetWindow.initWidget) return;
     e.stopPropagation();
 
     cleanup();

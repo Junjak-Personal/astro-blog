@@ -1,4 +1,9 @@
 ---
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { contentMessages } from '@/i18n/content';
+
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale, contentMessages);
 export interface Props {
   title?: string;
 }
@@ -7,14 +12,14 @@ const { title = '' } = Astro.props;
 <figure class="expandable-diagram">
   <figcaption>{title}</figcaption>
 
-  <div class="diagram-content">Loading diagram...</div>
+  <div class="diagram-content">{t('blog-post.diagram_loading', 'Loading diagram...')}</div>
   <slot />
 </figure>
 
 <script>
 import mermaid from 'mermaid';
 
-  type MermaidTheme = 'default' | 'base' | 'dark' | 'forest' | 'neutral' | 'null' | undefined;
+type MermaidTheme = 'default' | 'base' | 'dark' | 'forest' | 'neutral' | 'null' | undefined;
 
 function extractMermaidCode() {
   const mermaidElements = document.querySelectorAll('figure.expandable-diagram');

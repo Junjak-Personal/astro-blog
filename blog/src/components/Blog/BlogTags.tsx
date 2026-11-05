@@ -19,6 +19,7 @@ export default function BlogTags({ tags, badgeClick }: Props) {
       <div className="tags-wrapper">
         {tags.map((tag) => (
           <Badge
+            data-testid={`blog-tag-select-${tag}`}
             variant="secondary"
             className="rounded-md tag"
             key={makeKey(tag)}

@@ -1,4 +1,5 @@
 import type { DiaryContent } from './types';
+import type { Locale } from '@/i18n';
 import { useState } from 'react';
 import {
   Carousel,
@@ -9,10 +10,13 @@ import {
   useCarousel,
 } from '@/components/ui/carousel';
 import { ImageLightbox } from '@/components/ui/image-lightbox';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 import { srcSet, variant } from '@/utils/imageVariant';
 
 type DiaryCarouselProps = {
   content: DiaryContent[];
+  locale?: Locale;
 };
 
 function CounterBadge() {
@@ -29,7 +33,8 @@ function CounterBadge() {
   );
 }
 
-export function DiaryCarousel({ content }: DiaryCarouselProps) {
+export function DiaryCarousel({ content, locale: initialLocale }: DiaryCarouselProps) {
+  const { locale } = useI18n(initialLocale, contentMessages);
   const [lightboxVisible, setLightboxVisible] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -46,7 +51,7 @@ export function DiaryCarousel({ content }: DiaryCarouselProps) {
 
   return (
     <div className="my-6" data-no-lightbox>
-      <Carousel opts={{ loop: true, dragFree: true, align: 'start' }}>
+      <Carousel locale={locale} opts={{ loop: true, dragFree: true, align: 'start' }}>
         <CarouselContent className="-ml-2">
           {content.map((item, i) => (
             <CarouselItem key={i} className="pl-2 basis-1/2 md:basis-1/3 lg:basis-1/4">
@@ -76,12 +81,14 @@ export function DiaryCarousel({ content }: DiaryCarouselProps) {
                         decoding="async"
                         className="h-full w-full cursor-pointer object-cover"
                         style={{ height: '100%', margin: 0 }}
+                        data-testid={`gallery-photo-open-${i}`}
                         onClick={() => openLightbox(i)}
                         onError={(e) => {
                           // variant → original → fallback, terminal (dataset flag avoids
                           // a reload loop: IDL t.src is absolute, item.src relative).
                           const t = e.currentTarget;
-                          if (t.dataset.fb === '2') return;
+                          if (t.dataset.fb === '2')
+                            return;
                           if (t.dataset.fb === '1') { t.dataset.fb = '2'; t.src = '/fallbackImg.svg'; return; }
                           t.dataset.fb = '1'; t.srcset = ''; t.src = item.src;
                         }}
@@ -97,6 +104,7 @@ export function DiaryCarousel({ content }: DiaryCarouselProps) {
       </Carousel>
 
       <ImageLightbox
+        locale={locale}
         images={lightboxItems}
         visible={lightboxVisible}
         index={lightboxIndex}

@@ -1,8 +1,12 @@
-import { Badge } from '@/components/ui/badge';
+import type { Locale } from '@/i18n';
 import { motion } from 'framer-motion';
+import { Badge } from '@/components/ui/badge';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 
 type Props = {
   categories: string[];
+  locale?: Locale;
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
 };
@@ -27,6 +31,7 @@ function StatedBadge({ category, selectedCategory, onClick }: BadgeProps) {
     >
       <Badge
         variant={selectedCategory === category ? 'default' : 'outline'}
+        data-testid={`blog-category-select-${category}`}
         onClick={onClick}
         className="cursor-pointer"
       >
@@ -36,14 +41,15 @@ function StatedBadge({ category, selectedCategory, onClick }: BadgeProps) {
   );
 }
 
-export default function CategoryTags({ categories, selectedCategory, onSelectCategory }: Props) {
+export default function CategoryTags({ categories, selectedCategory, onSelectCategory, locale }: Props) {
+  const { t } = useI18n(locale, contentMessages);
   // 줄바꿈 대신 가로 스크롤. flex-wrap + 고정 높이(h-[3rem])였을 때는 카테고리가 늘어나면
   // 둘째 줄이 그 높이 밖으로 밀려 아래 검색 영역에 잘렸다. py-1.5 는 badge 의 scale
   // 애니메이션이 스크롤 컨테이너에 잘리지 않게 하는 여백.
   return (
     <div className="flex items-center gap-2 overflow-x-auto overscroll-x-contain py-1.5">
       <div className="ml-1 shrink-0 font-medium text-sm tracking-wide text-muted-foreground">
-        Categories:
+        {t('blog-search.categories', 'Categories:')}
       </div>
       {categories.map((category) => (
         <StatedBadge

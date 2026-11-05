@@ -1,4 +1,7 @@
 ---
+import { getLocaleFromUrl, htmlLanguage, LOCALES, localizePath, openGraphLocale } from '@/i18n';
+
+const locale = getLocaleFromUrl(Astro.url);
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 type Props = {
@@ -46,6 +49,10 @@ const resolvedImage = new URL(image || '/og_banner.png', Astro.site).toString();
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
+{LOCALES.map((language) => (
+  <link rel="alternate" hreflang={htmlLanguage(language)} href={new URL(localizePath(Astro.url.pathname, language), Astro.site)} />
+))}
+<link rel="alternate" hreflang="x-default" href={new URL(localizePath(Astro.url.pathname, 'ko'), Astro.site)} />
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
@@ -61,7 +68,7 @@ const resolvedImage = new URL(image || '/og_banner.png', Astro.site).toString();
 <meta property="og:type" content={type} />
 <meta property="og:url" content={Astro.url} />
 <meta property="og:site_name" content={siteName} />
-<meta property="og:locale" content="en_US" />
+<meta property="og:locale" content={openGraphLocale(locale)} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:image" content={resolvedImage} />

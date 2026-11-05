@@ -1,18 +1,23 @@
+import type { Locale } from '@/i18n';
 import type { ProjectInfo } from '@/types/commonType';
 import { useStore } from '@nanostores/react';
 import React from 'react';
 import { TechIcon } from '@/components/About/TechStackComp/TechIcon';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 import { cn } from '@/lib/utils';
-import { srcSet, variant } from '@/utils/imageVariant';
 import { $theme } from '@/store/system';
 import getTechIcons from '@/utils/getTechIcons';
+import { srcSet, variant } from '@/utils/imageVariant';
 
 interface EachArticlesProps {
   frontmatter: ProjectInfo;
   url?: string;
+  locale?: Locale;
 }
 
-const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url }) => {
+const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url, locale: initialLocale }) => {
+  const { t, localizePath } = useI18n(initialLocale, contentMessages);
   const theme = useStore($theme);
   const techStacks = getTechIcons(frontmatter.techStacks ?? [], theme);
 
@@ -30,7 +35,7 @@ const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url }) => {
         'project-article-wrapper',
       )}
     >
-      <a href={url} className="h-full block">
+      <a href={url ? localizePath(url) : undefined} className="h-full block">
         <article className="project-article">
 
           <img
@@ -42,7 +47,8 @@ const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url }) => {
             className="rounded-t-2xl project-thumbnail"
             onError={(e) => {
               const t = e.currentTarget; const o = frontmatter.thumbnail ?? '';
-              if (t.dataset.fb === '2') return;
+              if (t.dataset.fb === '2')
+                return;
               if (t.dataset.fb === '1') { t.dataset.fb = '2'; t.src = '/fallbackImg.svg'; return; }
               t.dataset.fb = '1'; t.srcset = ''; t.src = o;
             }}
@@ -51,7 +57,7 @@ const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url }) => {
           <div className="article-info">
             <h3 className="article-title">{frontmatter.title}</h3>
             <div className="duration">
-              {frontmatter.duration}
+              {frontmatter.duration?.replace(/진행\s?중|현재|present|ongoing|current/gi, t('project-card.ongoing', 'Present'))}
             </div>
             <p className="desc">
               {frontmatter.description?.split('<br/>').map((line, idx) => (
@@ -64,7 +70,7 @@ const EachArticles: React.FC<EachArticlesProps> = ({ frontmatter, url }) => {
 
             <div className="tech-stack-wrapper">
               <div className="tech-stack-label">
-                Tech Stack
+                {t('project-card.tech_stack', 'Tech Stack')}
               </div>
               <div className="tech-stack-list">
                 {techStacks.map((tech) => (

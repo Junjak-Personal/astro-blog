@@ -1,6 +1,9 @@
+import type { Locale } from '@/i18n';
 import { Moon, Sun } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
+import { chromeMessages } from '@/i18n/chrome';
+import { useI18n } from '@/i18n/react';
 
 import { cn } from '@/lib/utils';
 import { $theme, setTheme } from '@/store/system';
@@ -8,13 +11,16 @@ import { $theme, setTheme } from '@/store/system';
 interface AnimatedThemeTogglerProps
   extends React.ComponentPropsWithoutRef<'button'> {
   duration?: number;
+  locale?: Locale;
 }
 
 export function AnimatedThemeToggler({
   className,
   duration = 400,
+  locale,
   ...props
 }: AnimatedThemeTogglerProps) {
+  const { t } = useI18n(locale, chromeMessages);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -90,7 +96,8 @@ export function AnimatedThemeToggler({
         'relative inline-flex items-center justify-center rounded-md p-2 transition-colors hover:bg-accent hover:text-accent-foreground',
         className,
       )}
-      aria-label="Toggle theme"
+      aria-label={t('theme.toggle', 'Toggle theme')}
+      data-testid="theme-toggle-click"
       {...props}
     >
       {/* Both icons render identically on SSR & CSR; the .dark class (set by
@@ -98,7 +105,7 @@ export function AnimatedThemeToggler({
           markup, so no hydration mismatch. */}
       <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all duration-300 dark:-rotate-90 dark:scale-0" />
       <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
+      <span className="sr-only">{t('theme.toggle', 'Toggle theme')}</span>
     </button>
   );
 }

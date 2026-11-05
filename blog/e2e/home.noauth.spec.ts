@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Home page', () => {
   test.beforeEach(async ({ page }) => {
@@ -32,11 +32,11 @@ test.describe('Home page', () => {
     await page.waitForTimeout(2000);
 
     // "Hello World! I'm Junja" text should be visible after TextAnimate hydrates
-    const introText = page.getByText("Hello World! I'm Junja", { exact: false });
+    const introText = page.getByText('Hello World! I\'m Junja', { exact: false });
     await expect(introText.first()).toBeVisible({ timeout: 10000 });
 
     // "Technologies I've worked" text
-    const techText = page.getByText("Technologies I've worked", { exact: false });
+    const techText = page.getByText('Technologies I\'ve worked', { exact: false });
     // Scroll into view first
     await techText.first().scrollIntoViewIfNeeded();
     await expect(techText.first()).toBeVisible({ timeout: 10000 });
@@ -106,7 +106,7 @@ test.describe('Home page - mobile', () => {
     await page.waitForTimeout(2000);
 
     // Text should still be visible
-    const introText = page.getByText("Hello World! I'm Junja", { exact: false });
+    const introText = page.getByText('Hello World! I\'m Junja', { exact: false });
     await expect(introText.first()).toBeVisible({ timeout: 10000 });
 
     // Blog button should be accessible

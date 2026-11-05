@@ -1,4 +1,6 @@
 ---
+import { getLocaleFromUrl, htmlLanguage } from '@/i18n';
+
 type WebSiteSchema = {
   type: 'website';
   title: string;
@@ -41,6 +43,7 @@ function buildJsonLd() {
       'name': schema.title,
       'description': schema.description,
       'url': pageUrl,
+      'inLanguage': htmlLanguage(getLocaleFromUrl(Astro.url)),
     });
   }
 
@@ -51,6 +54,7 @@ function buildJsonLd() {
       'headline': schema.title,
       'description': schema.description,
       'url': pageUrl,
+      'inLanguage': 'ko',
       'author': {
         '@type': 'Person',
         'name': schema.author || 'Jun',
@@ -62,10 +66,14 @@ function buildJsonLd() {
         ? schema.image
         : `${siteUrl}${schema.image}`;
     }
-    if (schema.publishedTime) article.datePublished = schema.publishedTime.toISOString();
-    if (schema.modifiedTime) article.dateModified = schema.modifiedTime.toISOString();
-    else if (schema.publishedTime) article.dateModified = schema.publishedTime.toISOString();
-    if (schema.tags?.length) article.keywords = schema.tags;
+    if (schema.publishedTime)
+article.datePublished = schema.publishedTime.toISOString();
+    if (schema.modifiedTime)
+article.dateModified = schema.modifiedTime.toISOString();
+    else if (schema.publishedTime)
+article.dateModified = schema.publishedTime.toISOString();
+    if (schema.tags?.length)
+article.keywords = schema.tags;
 
     items.push(article);
   }

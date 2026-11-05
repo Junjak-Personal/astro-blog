@@ -1,3 +1,6 @@
+import type { Locale } from '@/i18n';
+import * as React from 'react';
+import { PhotoProvider, PhotoView } from 'react-photo-view';
 import { Card, CardContent } from '@/components/ui/card';
 
 import {
@@ -9,18 +12,21 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 
-import * as React from 'react';
-import { PhotoProvider, PhotoView } from 'react-photo-view';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 
 type Props = {
   images: string[];
+  locale?: Locale;
 };
 
-export function ProjectCarousel({ images }: Props) {
+export function ProjectCarousel({ images, locale }: Props) {
+  const { t } = useI18n(locale, contentMessages);
   return (
     <div className="flex justify-center items-center project-carousel" data-no-lightbox>
       <PhotoProvider>
         <Carousel
+          locale={locale}
           opts={{
             align: 'start',
           }}
@@ -34,7 +40,7 @@ export function ProjectCarousel({ images }: Props) {
                   <div className="cursor-pointer">
                     <Card>
                       <CardContent className="flex items-center justify-center p-2">
-                        <img src={item} alt={`project-${index}`} className="m-0" />
+                        <img src={item} alt={t('project-card.image', 'Project image {number}', { number: index + 1 })} className="m-0" />
                       </CardContent>
                     </Card>
                   </div>

@@ -1,15 +1,20 @@
+import type { Locale } from '@/i18n';
 import type { TechIconType } from '@/types/commonType.ts';
-import { TechIcon } from '@/components/About/TechStackComp/TechIcon.tsx';
 // @flow
 import * as React from 'react';
+import { TechIcon } from '@/components/About/TechStackComp/TechIcon.tsx';
+import { aboutMessages } from '@/i18n/about';
+import { useI18n } from '@/i18n/react';
 
 type Props = {
+  locale?: Locale;
   title: string;
   duration: string;
   desc: string;
   techStackIcon: TechIconType[];
 };
-export function EachProject({ title, duration, desc, techStackIcon }: Props) {
+export function EachProject({ locale: initialLocale, title, duration, desc, techStackIcon }: Props) {
+  const { t } = useI18n(initialLocale, aboutMessages);
   return (
     <div className="project-card-content">
       <h4>
@@ -26,7 +31,7 @@ export function EachProject({ title, duration, desc, techStackIcon }: Props) {
           눈으로만 깨져 보인다. */}
       <div className="flex flex-wrap gap-1 items-center min-w-0">
         <div className="text-muted-foreground text-sm shrink-0">
-          Used:
+          {t('about.used', 'Used:')}
         </div>
         {techStackIcon.map((icon) => (
           <TechIcon

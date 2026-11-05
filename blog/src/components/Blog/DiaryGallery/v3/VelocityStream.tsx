@@ -1,9 +1,14 @@
 'use client';
 
 import type { MotionValue } from 'framer-motion';
+import type { PolaroidImage } from './shared';
+import type { Locale } from '@/i18n';
+
 import { motion, useScroll, useSpring, useTransform, useVelocity } from 'framer-motion';
 import { useRef, useState } from 'react';
-import { type PolaroidImage, resolveThumb } from './shared';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
+import { resolveThumb } from './shared';
 import { V3LightboxShell } from './V3LightboxShell';
 import './v3.css';
 
@@ -73,7 +78,8 @@ function StreamStage({ item }: { item: PolaroidImage }) {
   );
 }
 
-export function VelocityStream({ items }: { items: PolaroidImage[] }) {
+export function VelocityStream({ items, locale: initialLocale }: { items: PolaroidImage[]; locale?: Locale }) {
+  const { locale, t } = useI18n(initialLocale, contentMessages);
   const [index, setIndex] = useState<number | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -110,11 +116,11 @@ export function VelocityStream({ items }: { items: PolaroidImage[] }) {
               />
             ))}
           </div>
-          <span className="dgv3-stream__hint" aria-hidden="true">스크롤하면 흐릅니다 ↓</span>
+          <span className="dgv3-stream__hint" aria-hidden="true">{t('content-gallery.scroll', '스크롤하면 흐릅니다 ↓')}</span>
         </div>
       </div>
 
-      <V3LightboxShell count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
+      <V3LightboxShell locale={locale} count={items.length} index={index} onClose={() => setIndex(null)} onIndex={setIndex}>
         {(i) => <StreamStage item={items[i]} />}
       </V3LightboxShell>
     </div>

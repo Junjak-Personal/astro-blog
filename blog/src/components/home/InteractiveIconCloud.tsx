@@ -1,3 +1,4 @@
+import type { Locale } from '@/i18n';
 import { IconCloud } from '@/components/ui/icon-cloud';
 
 const slugs = [
@@ -61,8 +62,8 @@ const images = slugs.map(
   (slug) => `/images/icon/tech-stack/color/${slug}.svg`,
 );
 
-export default function InteractiveIconCloud() {
+export default function InteractiveIconCloud({ locale }: { locale?: Locale }) {
   return (
-    <IconCloud images={images} maxSize={550} className="flex justify-center" />
+    <IconCloud locale={locale} images={images} maxSize={550} className="flex justify-center" />
   );
 }

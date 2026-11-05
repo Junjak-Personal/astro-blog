@@ -1,63 +1,67 @@
+import type { Locale } from '@/i18n';
 import { motion } from 'framer-motion';
 // @flow
 import * as React from 'react';
+import { aboutMessages } from '@/i18n/about';
+import { useI18n } from '@/i18n/react';
 
 type HobbyCategory = {
   title: string;
   details: { label: string; items: string[] }[];
 };
 
-export function HobbyList() {
+export function HobbyList({ locale: initialLocale }: { locale?: Locale } = {}) {
+  const { t } = useI18n(initialLocale, aboutMessages);
   const hobbies: HobbyCategory[] = [
     {
-      title: '게임',
+      title: t('about.hobby_games', '게임'),
       details: [
         {
-          label: '좋아하는 장르',
-          items: ['리듬게임', '전략시뮬레이션', 'RPG'],
+          label: t('about.hobby_genres', '좋아하는 장르'),
+          items: [t('about.hobby_rhythm', '리듬게임'), t('about.hobby_strategy', '전략시뮬레이션'), 'RPG'],
         },
         {
-          label: '플레이 중',
+          label: t('about.hobby_playing', '플레이 중'),
           items: ['명일방주', 'DJ MAX', '햄탈워3', '메타포: 리판타지오', '롤'],
         },
       ],
     },
     {
-      title: '애니메이션',
+      title: t('about.hobby_anime', '애니메이션'),
       details: [
         {
-          label: '최애',
+          label: t('about.hobby_favorites', '최애'),
           items: ['Phyco-pass', '장송의 프리렌', '봇치 더 락', '걸즈 밴드 크라이', '주술회전'],
         },
         {
-          label: '현재 시청 중',
+          label: t('about.hobby_watching', '현재 시청 중'),
           items: ['나혼렙', '지', '푸른 상자', '약사의 혼잣말', '꽃은 피어난다 수라와 같이'],
         },
       ],
     },
     {
-      title: '음악',
+      title: t('about.hobby_music', '음악'),
       details: [
         {
-          label: '좋아하는 장르',
+          label: t('about.hobby_genres', '좋아하는 장르'),
           items: ['J-Pop', 'New Age', 'Rock'],
         },
         {
-          label: '최애',
+          label: t('about.hobby_favorites', '최애'),
           items: ['Yoasobi', '요네즈켄시', 'Vaundy', 'Kinggnu', 'Ado'],
         },
       ],
     },
     {
-      title: '일본 여행',
+      title: t('about.hobby_japan', '일본 여행'),
       details: [
         {
-          label: '목표',
-          items: ['일본 전국을 다 돌아보는 것'],
+          label: t('about.hobby_goal', '목표'),
+          items: [t('about.hobby_japan_goal', '일본 전국을 다 돌아보는 것')],
         },
         {
-          label: '기록',
-          items: ['여행기는 블로그에 작성 예정입니다.'],
+          label: t('about.hobby_records', '기록'),
+          items: [t('about.hobby_blog', '여행기는 블로그에 작성 예정입니다.')],
         },
       ],
     },
@@ -92,7 +96,7 @@ export function HobbyList() {
         viewport={{ once: true }}
         className="text-2xl font-bold mb-6"
       >
-        Hobbies
+        {t('about.hobbies', 'Hobbies')}
       </motion.h2>
       <motion.div
         variants={container}

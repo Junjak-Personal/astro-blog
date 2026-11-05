@@ -1,0 +1,52 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import NotFound from '../404.astro';
+import About from '../about.astro';
+import Blog from '../blog.astro';
+import BlogPost from '../blog/[...slug].astro';
+import Home from '../index.astro';
+import Playground from '../playground.astro';
+import PlaygroundPost from '../playground/[...slug].astro';
+import Project from '../project.astro';
+import ProjectPost from '../project/[...slug].astro';
+
+type Props
+  = | { page: 'home' | 'about' | 'blog' | 'project' | 'playground' | '404' }
+    | { page: 'blog-post'; post: CollectionEntry<'blog'>; prev: CollectionEntry<'blog'> | null; next: CollectionEntry<'blog'> | null }
+    | { page: 'project-post'; post: CollectionEntry<'project'> }
+    | { page: 'playground-post'; post: CollectionEntry<'playground'> };
+
+export async function getStaticPaths() {
+  const [posts, projects, playgrounds] = await Promise.all([
+    getCollection('blog'),
+    getCollection('project'),
+    getCollection('playground'),
+  ]);
+  posts.sort((a, b) => b.data.created.getTime() - a.data.created.getTime());
+  return ['en', 'jp'].flatMap((locale) => [
+    ...(['home', 'about', 'blog', 'project', 'playground', '404'] as const).map((page) => ({
+      params: { locale, path: page === 'home' ? undefined : page },
+      props: { page },
+    })),
+    ...posts.map((post, index) => ({
+      params: { locale, path: `blog/${post.id}` },
+      props: { page: 'blog-post', post, prev: posts[index + 1] ?? null, next: posts[index - 1] ?? null },
+    })),
+    ...projects.map((post) => ({ params: { locale, path: `project/${post.id}` }, props: { page: 'project-post', post } })),
+    ...playgrounds.map((post) => ({ params: { locale, path: `playground/${post.id}` }, props: { page: 'playground-post', post } })),
+  ]);
+}
+
+const props = Astro.props;
+---
+
+{props.page === 'home' && <Home />}
+{props.page === 'about' && <About />}
+{props.page === 'blog' && <Blog />}
+{props.page === 'project' && <Project />}
+{props.page === 'playground' && <Playground />}
+{props.page === '404' && <NotFound />}
+{props.page === 'blog-post' && <BlogPost post={props.post} prev={props.prev} next={props.next} />}
+{props.page === 'project-post' && <ProjectPost post={props.post} />}
+{props.page === 'playground-post' && <PlaygroundPost post={props.post} />}

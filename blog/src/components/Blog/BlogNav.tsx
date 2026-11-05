@@ -1,16 +1,21 @@
 import type { CollectionEntry } from 'astro:content';
-import { Icon } from '@/components/ui/icon';
+import type { Locale } from '@/i18n';
 import dayjs from 'dayjs';
+import { Icon } from '@/components/ui/icon';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 import { Button } from '../ui/button';
 
 type Props = {
+  locale?: Locale;
   nav?: {
     prev: CollectionEntry<'blog'> | null;
     next: CollectionEntry<'blog'> | null;
   };
 };
 
-export default function BlogNav({ nav }: Props) {
+export default function BlogNav({ nav, locale: initialLocale }: Props) {
+  const { t, localizePath } = useI18n(initialLocale, contentMessages);
   function getCreatedDt(date: Date) {
     return dayjs(date).format('YYYY-MM-DD');
   }
@@ -20,10 +25,10 @@ export default function BlogNav({ nav }: Props) {
       <div className="btn-wrapper">
         {nav?.prev && (
           <Button variant="outline" className="prev nav-button">
-            <a href={`/blog/${nav.prev.id}`}>
+            <a data-testid="blog-previous-link" href={localizePath(`/blog/${nav.prev.id}`)}>
               <div className="flex justify-start">
                 <Icon icon="mingcute:left-line" className="nav-icon" />
-                <h3>이전 글</h3>
+                <h3>{t('blog-post.previous', '이전 글')}</h3>
               </div>
               <div className="content">
                 <div className="title">
@@ -42,9 +47,9 @@ export default function BlogNav({ nav }: Props) {
       <div className="btn-wrapper">
         {nav?.next && (
           <Button variant="outline" className="next nav-button">
-            <a href={`/blog/${nav.next.id}`}>
+            <a data-testid="blog-next-link" href={localizePath(`/blog/${nav.next.id}`)}>
               <div className="flex justify-end">
-                <h3>다음 글</h3>
+                <h3>{t('blog-post.next', '다음 글')}</h3>
                 <Icon icon="mingcute:right-line" className="nav-icon" />
               </div>
               <div className="content">

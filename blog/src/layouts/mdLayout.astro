@@ -3,17 +3,18 @@ import type { CollectionEntry } from 'astro:content';
 import { ClientRouter } from 'astro:transitions';
 import dayjs from 'dayjs';
 import dayJsRelativeTime from 'dayjs/plugin/relativeTime';
-
 import BlogNav from '@/components/Blog/BlogNav';
+
 import { PolaroidFlipLightbox } from '@/components/Blog/DiaryGallery';
 import FloatButton from '@/components/layouts/FloatButton.astro';
 import Footer from '@/components/layouts/Footer';
 import ImageFullscreen from '@/components/layouts/ImageFullscreen.astro';
 import Navigation from '@/components/layouts/Navigation';
 import PelicaCursor from '@/components/layouts/PelicaCursor.astro';
-
 import ThemeInit from '@/components/layouts/ThemeInit.astro';
+
 import ScrollProgress from '@/components/ui/scroll-progress';
+import { createTranslator, getLocaleFromUrl, htmlLanguage, localizePath } from '@/i18n';
 import BlogFrontmatter from '../components/Blog/BlogFrontmatter';
 import GiscusComp from '../components/Blog/GiscusComp';
 import CommonScript from '../components/layouts/CommonScript.astro';
@@ -49,9 +50,12 @@ const { nav, post, url } = Astro.props;
 
 const { title, tags = [], category = '', description: postDesc, thumbnail, created, updated } = post;
 const blogDescription = postDesc || [title, category, ...tags].filter(Boolean).join(' | ');
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale);
+
 ---
 
-<html lang="en">
+<html lang={htmlLanguage(locale)} data-locale={locale}>
   <head>
     <meta name="giscus:backlink" content="https://bit.ly/RickRolled" />
     <ClientRouter />
@@ -76,8 +80,8 @@ const blogDescription = postDesc || [title, category, ...tags].filter(Boolean).j
         tags,
       }}
       breadcrumbs={[
-        { name: 'Home', url: '/' },
-        { name: 'Blog', url: '/blog' },
+        { name: t('site.home', 'Home'), url: localizePath('/', locale) },
+        { name: t('site.blog', 'Blog'), url: localizePath('/blog', locale) },
         { name: title, url: Astro.url.pathname },
       ]}
     />
@@ -88,7 +92,7 @@ const blogDescription = postDesc || [title, category, ...tags].filter(Boolean).j
   <body>
     <PelicaCursor />
     <ImageFullscreen />
-    <Navigation client:idle transition:persist="main-nav" />
+    <Navigation locale={locale} client:idle transition:persist="main-nav" />
 
     <main>
       <ScrollProgress
@@ -97,20 +101,23 @@ const blogDescription = postDesc || [title, category, ...tags].filter(Boolean).j
       />
 
       <div class="markdown-content-wrapper">
-        <div
+        <button
+          type="button"
           id="go-back"
-          class="text-lg font-bold text-opacity-80 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-gray-50 mb-2 w-[5rem] cursor-pointer"
+          data-testid="article-back-button"
+          aria-label={t('site.go_back', 'Go back')}
+          class="border border-current/20 rounded px-2 py-1 text-lg font-bold text-opacity-80 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-gray-50 mb-2 w-fit cursor-pointer"
           onclick="history.go((window._mdEntryIndex ?? 0) - (history.state?.index ?? 0) - 1)"
         >
-          {`> cd ..`}
-        </div>
+          {t('site.back_command', '> cd ..')}
+        </button>
         <div class="front-matter-info">
-          <BlogFrontmatter frontmatter={post} client:visible />
+          <BlogFrontmatter locale={locale} frontmatter={post} client:visible />
         </div>
         <div class="blog-nav">
-          <BlogNav nav={nav} client:visible />
+          <BlogNav locale={locale} nav={nav} client:visible />
         </div>
-        <div class="article-entry" data-pagefind-body>
+        <div class="article-entry" lang="ko" data-pagefind-body>
           {tags.map((tag) => (
             <meta data-pagefind-filter={`tag:${tag}`} />
           ))}
@@ -118,12 +125,12 @@ const blogDescription = postDesc || [title, category, ...tags].filter(Boolean).j
           <slot />
         </div>
         <div class="blog-nav">
-          <BlogNav nav={nav} client:visible />
+          <BlogNav locale={locale} nav={nav} client:visible />
         </div>
         <Separator className="my-8" client:visible />
 
         <div class="giscus-body">
-          <GiscusComp client:load>
+          <GiscusComp locale={locale} client:load>
             <div class="giscus-fallback" slot="fallback">
               <Skeleton className="h-[1rem] w-full]" />
               <Skeleton className="h-[1rem] w-full" />
@@ -134,9 +141,9 @@ const blogDescription = postDesc || [title, category, ...tags].filter(Boolean).j
         <div class="dummy-container"></div>
       </div>
     </main>
-    <Footer client:idle transition:persist="main-footer" />
+    <Footer locale={locale} client:idle transition:persist="main-footer" />
     <FloatButton />
-    <PolaroidFlipLightbox client:idle />
+    <PolaroidFlipLightbox locale={locale} client:idle />
     <CommonScript />
   </body>
 </html>

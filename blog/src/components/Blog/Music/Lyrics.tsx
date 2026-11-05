@@ -1,8 +1,11 @@
 import type { KeyboardEvent } from 'react';
+import type { Locale } from '@/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Fragment, useCallback, useState } from 'react';
-import { Icon } from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 import './lyrics.css';
 
 type RubyToken = { k: string; r: string };
@@ -14,6 +17,7 @@ type Stanza = {
 
 type Props = {
   stanzas: Stanza[];
+  locale?: Locale;
 };
 
 function isRuby(token: Token): token is RubyToken {
@@ -42,7 +46,8 @@ function hasTranslation(stanza: Stanza): boolean {
   return stanza.ko.some((line) => line.trim() !== '');
 }
 
-export default function Lyrics({ stanzas }: Props) {
+export default function Lyrics({ stanzas, locale }: Props) {
+  const { t } = useI18n(locale, contentMessages);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   // Only stanzas with a translation are expandable (kpop / untranslated verses show plain).
   const koIndices = stanzas.flatMap((s, i) => (hasTranslation(s) ? [i] : []));
@@ -84,9 +89,10 @@ export default function Lyrics({ stanzas }: Props) {
             variant="outline"
             size="sm"
             type="button"
+            data-testid="music-translation-toggle-all"
             onClick={allExpanded ? collapseAll : expandAll}
           >
-            {allExpanded ? '전체 접기' : '전체 펼치기'}
+            {allExpanded ? t('music-controls.collapse', '전체 접기') : t('music-controls.expand', '전체 펼치기')}
           </Button>
         </div>
       )}
@@ -118,6 +124,8 @@ export default function Lyrics({ stanzas }: Props) {
             key={index}
             className={`lyrics-stanza${isOpen ? ' is-expanded' : ''}`}
             role="button"
+            data-testid={`music-translation-toggle-${index}`}
+            aria-label={t('music-controls.translation', '한국어 번역 {number}', { number: index + 1 })}
             aria-expanded={isOpen}
             tabIndex={0}
             onClick={() => toggleStanza(index)}

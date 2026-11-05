@@ -1,23 +1,28 @@
+import type { Locale } from '@/i18n';
 import type { BlogFrontMatter } from '@/types/commonType.ts';
 import dayjs from 'dayjs';
 import BlogTags from '@/components/Blog/BlogTags';
 import { MagicCard, MagicContainer } from '@/components/ui/magic-card';
+import { contentMessages } from '@/i18n/content';
+import { useI18n } from '@/i18n/react';
 
 interface Props {
   frontmatter: BlogFrontMatter;
+  locale?: Locale;
 }
 
-export default function BlogFrontmatter({ frontmatter }: Props) {
+export default function BlogFrontmatter({ frontmatter, locale: initialLocale }: Props) {
   // Absolute date only — `fromNow()` is time-of-render dependent and diverges
   // SSR↔CSR for posts < 31 days old (React #418).
+  const { localizePath } = useI18n(initialLocale, contentMessages);
   const created = dayjs(frontmatter.created).format('YYYY-MM-DD');
 
   function onSearch(type: 'category' | 'tag', value: string) {
     if (type === 'category') {
-      window.location.href = `/blog?category=${value}`;
+      window.location.href = localizePath(`/blog?category=${encodeURIComponent(value)}`);
     }
     else {
-      window.location.href = `/blog?type=${type}&q=${value}`;
+      window.location.href = localizePath(`/blog?type=${type}&q=${encodeURIComponent(value)}`);
     }
   }
 
@@ -26,6 +31,7 @@ export default function BlogFrontmatter({ frontmatter }: Props) {
       <MagicCard className="flex w-full  items-center overflow-hidden p-6 shadow-2xl">
         <div className="front-matter-info">
           <div
+            data-testid="blog-category-search"
             className="cursor-pointer category text-green-600 dark:text-green-500"
             onClick={() => onSearch('category', frontmatter.category)}
           >

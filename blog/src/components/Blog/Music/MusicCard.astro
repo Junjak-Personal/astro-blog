@@ -1,5 +1,10 @@
 ---
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { contentMessages } from '@/i18n/content';
 import { size } from '@/utils/imageVariant';
+
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale, contentMessages);
 
 interface Props {
   appleMusicUrl: string;
@@ -37,7 +42,7 @@ const caption = captionParts.join(' · ');
         src={cover}
         width={coverDim?.w}
         height={coverDim?.h}
-        alt={[artist, album].filter(Boolean).join(' - ') || 'album cover'}
+        alt={[artist, album].filter(Boolean).join(' - ') || t('music-controls.cover', 'album cover')}
         decoding="async"
         fetchpriority="high"
       />
@@ -58,21 +63,23 @@ const caption = captionParts.join(' · ');
   <div class="flex flex-wrap gap-2">
     <a
       class="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 text-sm"
+      data-testid="music-apple-open"
       href={appleMusicUrl}
       target="_blank"
       rel="noopener noreferrer"
     >
-      Apple Music ↗
+      {t('music-controls.apple', 'Apple Music ↗')}
     </a>
 
     {youtubeMusicUrl && (
       <a
         class="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 text-sm"
+        data-testid="music-youtube-open"
         href={youtubeMusicUrl}
         target="_blank"
         rel="noopener noreferrer"
       >
-        YouTube Music ↗
+        {t('music-controls.youtube', 'YouTube Music ↗')}
       </a>
     )}
   </div>
