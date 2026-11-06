@@ -99,7 +99,7 @@ const isPlayground = stripLocale(Astro.url.pathname).startsWith('/playground/');
     >
       {t('site.back_command', '> cd ..')}
     </button>
-    <div class="article-entry" lang="ko">
+    <div class="article-entry" lang={htmlLanguage(locale)}>
       <slot></slot>
     </div>
     <div class="dummy-container" />

@@ -1,0 +1,87 @@
+---
+title: Diary Gallery ver3
+duration: 2026-06-29 ~ current
+techStacks: ['typescript', 'react', 'framer']
+thumbnail: /files/blog/diary/25-01-tokyo/assets/20250120_063147954_iOS.webp
+description: Diary Gallery ver3 with a nostalgic travel mood — a comparison of airmail postcards, film slides, and a travel journal.
+---
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import { PostcardGallery, FilmStripGallery, JournalGallery, VelocityStream } from '@/components/Blog/DiaryGallery/v3';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+export const sample = [
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_020826538_iOS.webp',
+    thumb: true,
+    title: 'Narita Airport',
+    caption: 'Narita',
+    description: 'Finally at Narita. The winter air stung my nose.',
+    alt: 'Narita Airport',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_035637959_iOS.webp',
+    thumb: true,
+    title: 'Ueno Park',
+    caption: 'Ueno Park',
+    description: 'I took a slow walk through Ueno Park, its paths covered in fallen leaves.',
+    alt: 'Ueno Park',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_045235359_iOS.webp',
+    thumb: true,
+    title: 'Tsukishima Monja Street',
+    caption: 'Tsukishima',
+    description: 'An alley lined with monjayaki restaurants. The smell alone made my mouth water.',
+    alt: 'Tsukishima Monja Street',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_052312067_iOS.webp',
+    thumb: true,
+    title: 'Monjayaki',
+    caption: 'Monjayaki',
+    description: 'My first time cooking monjayaki myself. It took more work than I expected.',
+    alt: 'Monjayaki',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_055227328_iOS.webp',
+    thumb: true,
+    title: 'Butter-grilled mushrooms',
+    caption: 'Butter Yaki',
+    description: 'A bite of butter-grilled mushroom. The drinks went down effortlessly.',
+    alt: 'Butter-grilled mushrooms',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_063147954_iOS.webp',
+    thumb: true,
+    title: 'Ginza at night',
+    caption: 'Ginza Night',
+    description: 'Ginza lit up at night. The end of the day sparkled.',
+    alt: 'Ginza at night',
+  },
+];
+
+## A. Airmail postcards
+
+Postcards on a low map/kraft-paper desk. Clicking a card flips the postcard in 3D inside the lightbox (front = photo, back = handwritten letter).
+
+<PostcardGallery client:visible items={sample} />
+
+## B. Vintage film / slides
+
+A 35mm film strip with sprocket holes and sepia tones. Clicking a frame enlarges it into a slide mount on a light table, with a handwritten mount label. The mount tilts slightly with mouse movement.
+
+<FilmStripGallery client:visible items={sample} />
+
+## C. Travel journal
+
+Photos attached with washi tape to the open pages of a bound journal. Clicking a photo lifts the page in 3D and displays a handwritten note in the margin.
+
+<JournalGallery client:visible items={sample} />
+
+## D. Velocity-linked 3D stream
+
+A technique from [Motion’s scroll-velocity example](https://examples.motion.dev/react/scroll-velocity-linked-offset). A 3D stream of photos arranged diagonally with depth. **It flows as you scroll**, and scroll velocity (`useVelocity`) changes card tilt and offset in real time like a wave. Clicking a card enlarges it in a lightbox with a handwritten caption.
+
+<VelocityStream client:visible items={sample} />

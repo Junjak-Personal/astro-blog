@@ -1,0 +1,148 @@
+---  
+title: "About Volta"  
+created: 2023-01-25  
+updated: 2025-02-20  
+tags: [ 'node', 'npm', 'yarn', 'pnpm', 'volta', 'package-manager' ]  
+category: Web  
+thumbnail: /files/blog/web/common/assets/volta.webp  
+---  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<TableOfContents>  
+- Overview  
+- Basic Usage  
+  - Installation  
+  - Pinning the node Version for a Project  
+  - Main Commands  
+- Integration with Intellij  
+- My Experience  
+  - Advantages  
+  - Disadvantages  
+</TableOfContents>  
+  
+<ImageLoader src="/files/blog/web/common/assets/volta.webp" alt="volta.png" />  
+  
+> ❓ Volta: a cli tool for managing Node.js versions, similar to nvm  
+  
+## Overview  
+  
+Different projects sometimes need different Node.js versions. I previously used nvm to handle that.  
+But when switching among several projects, I frequently needed to change the active version,  
+and mistakes in that process often led to confusion.  
+  
+While looking for a way to pin a node version for each project,  
+I discovered volta: a tool that manages node.js versions like nvm and lets you pin the node.js version in package.json.  
+Here I will introduce how to use it and share my experience.  
+  
+## Basic Usage  
+  
+### Installation  
+  
+Open the link below and follow the instructions. (It is very simple...)  
+[https://docs.volta.sh/guide/getting-started](https://docs.volta.sh/guide/getting-started)  
+  
+- Unix (linux, mac-os)  
+  
+  ```bash title="terminal"  
+  curl https://get.volta.sh | bash  
+  ```  
+  - If it does not work after installation on a Unix-like system:  
+  
+    In my case, volta wasn't registered in the environment variables for the shell I was using.  
+    Adding the following script at the end of the shell's configuration file resolved it.  
+  
+      - bash: add the script below to .bashrc  
+      - zsh: add the script below to .zshrc  
+  
+    ```json title=".bashrc or .zshrc"  
+    export VOLTA_HOME="$HOME/.volta"  
+    export PATH="$VOLTA_HOME/bin:$PATH"  
+    ```  
+- Windows: click `downlaod and run the windows installer` at the link above, download the installer, and run it.  
+  
+### Pinning the node Version for a Project  
+  
+Specify the Node and package-manager versions at the bottom of package.json as shown below, and the Node version will switch automatically when you enter the project.  
+> 📌 Specify the exact node version to use.  
+  
+```json title="packge.json"  
+{  
+  "name": "volta-test",  
+  "scripts": {  
+    ...  
+  },  
+  "dependencies": {  
+    ...  
+  },  
+  "devDependencies": {  
+    ...  
+  },  
+  "volta": {  
+    "node": "14.17.0",  
+    "npm": "7.19.1"  
+  }  
+}  
+```  
+  
+### Main Commands  
+  
+See the following reference for detailed commands.  
+[https://docs.volta.sh/reference/](https://docs.volta.sh/reference/)  
+  
+- volta install  
+  
+    - Install Node.js or a Node package manager in volta, then switch the current context.  
+    - If that version is already installed, switch the current context.  
+    - ex1) `volta install node@16.17`  
+    - ex2) `volta install yarn@1.22`  
+  
+- volta uninstall  
+    - Remove Node.js or a Node package manager from volta.  
+    - ex1) `volta uninstall node@16.17`  
+    - ex2) `volta uninstall yarn@1.22`  
+  
+- volta list  
+    - Check the node and package-manager versions installed in volta.  
+      - ex) `volta list`: shows the currently active volta information, as in the image below.  
+        <ImageLoader src="/files/blog/web/common/assets/Untitled-9988248.webp" alt="Untitled" />  
+  
+      - ex) `volta list node`: shows the Node versions installed in volta, as in the image below.  
+        <ImageLoader src="/files/blog/web/common/assets/Untitled1-9988257.webp" alt="Untitled 1" />  
+  
+- volta pin  
+    - Add an entry pinning the node version to the current package.json.  
+    - ex) `volta pin node@16.17`  
+  
+## Integration with Intellij  
+I mainly use webstorm, so I will add vscode instructions later.  
+  
+> 💡 Changing Node interpreter and Package manager makes scripts run with the node installed in volta. Before execution, volta reads the node version specified in package.json and runs the script with that version.  
+  
+Open the intellij settings as shown below,  
+and change Node interpreter and Package manager under Languages & Framework > Node.js.  
+  
+- Node Interpreter: choose an entry whose path contains .volta.  
+    - If there is no entry, click the … button and add one.  
+    - Use `volta which node` to find the Node Path installed in Volta.  
+- Package manager: choose an entry whose path contains .volta.  
+    - If there is no entry, click the … button and add one.  
+    - Use `volta which npm (same for yarn, pnpm)` to find the package-manager Path installed in Volta.  
+      <ImageLoader src="/files/blog/web/common/assets/Untitled-9988452.webp" alt="Untitled" />  
+  
+## My Experience  
+As mentioned earlier, I used nvm installed through brew, but since discovering volta, I have managed node versions exclusively with volta.  
+For personal projects, I can simply use the latest version, but company projects sometimes leave no choice but to use legacy versions.  
+Pin the version in packge.json with volta, and it switches the node version automatically, so I no longer have to think about it...  
+### Advantages  
+- Installation and usage are very simple and easy to learn.  
+- Being able to pin versions in package.json is extremely convenient.  
+- node and the various package managers (npm, yarn, pnpm) can all be managed through volta.  
+  
+### Disadvantages  
+- The commands feel somewhat unintuitive.  
+- Global library installation can fail with some package managers (pnpm).  
+  
+  
+  

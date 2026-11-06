@@ -1,11 +1,13 @@
 ---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
 import MermaidInit from '@/components/layouts/MermaidInit.astro';
-import { type CollectionEntry, getCollection, render } from 'astro:content';
 import ProjectLayout from '@/layouts/projectLayout.astro';
+import { getLocalizedCollection } from '@/utils/localizedContent';
 
 
 export async function getStaticPaths() {
-  const posts = await getCollection('playground');
+  const posts = await getLocalizedCollection('playground', 'ko');
   return posts.map((post) => ({
     params: { slug: post.id },
     props: {

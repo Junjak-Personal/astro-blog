@@ -14,6 +14,31 @@ export function stripLocale(pathname: string) {
   return pathname.replace(/^\/(en|jp)(?=\/|$)/, '') || '/';
 }
 
+export function getContentLocale(id: string): Locale {
+  const prefix = id.split('/')[0];
+  return isLocale(prefix) ? prefix : 'ko';
+}
+
+export function getContentSlug(id: string) {
+  return id.replace(/^(?:ko|en|jp)\//, '');
+}
+
+export function selectLocalizedEntries<T extends { id: string }>(entries: T[], locale: Locale) {
+  const selected = new Map<string, T>();
+  // Keep the original files as the root (Korean) locale and fallback source.
+  for (const entry of entries) {
+    if (!/^(?:ko|en|jp)\//.test(entry.id))
+      selected.set(entry.id, entry);
+  }
+  for (const entry of entries) {
+    if (/^(?:ko|en|jp)\//.test(entry.id) && getContentLocale(entry.id) === locale)
+      selected.set(getContentSlug(entry.id), entry);
+  }
+  // Astro renders from filePath/rendered, so a stable public id can be shared
+  // by all translations without changing the MDX module used by render().
+  return [...selected.values()].map((entry) => ({ ...entry, id: getContentSlug(entry.id) }));
+}
+
 // Match Giscus's original pathname mapping so existing discussions stay attached.
 export function getDiscussionTerm(pathname: string) {
   const originalPath = stripLocale(pathname);

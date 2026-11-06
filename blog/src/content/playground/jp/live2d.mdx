@@ -1,0 +1,37 @@
+---
+title: Live 2d Widget
+duration: 2025-03-07 ~ 2026-02-19
+techStacks: ['typescript','astro']
+thumbnail: /files/playground/live2d-test.webp
+description: Web Page Live2D Widgetの実装テストページです。
+---
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import Live2DWidget from '@/components/layouts/Live2DWidget.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## 説明
+以下のライブラリを使ったWeb Page Live2D Widgetの実装テストページです。  
+モデルのファイルサイズが大きいため、表示までにかなり時間がかかります。    
+
+無料モデルのフリーレン、アーニャ、ひよりの3種類を追加しました。  
+モデルを変更したい場合は、メニュー最上部のモデル切り替えアイコンをクリックしてください。
+
+- [GithubLink](https://github.com/stevenjoezhang/live2d-widget)
+- [作業中のフォークリポジトリ](https://github.com/JunjaK/live2d-widget)
+
+## 作業内容
+- Cubism 5対応（live2d-widgets v1.0）
+- モデル: Frieren、ANIYA、Hiyori（切り替え可能）
+- shadcnのデザイントークンによるスタイル適用
+- mingcuteアイコンの適用
+- ドラッグで位置を調整し、localStorageに保存
+- Cache APIによるモデルファイルのキャッシュ
+
+## 結果
+- レイアウトに常時表示したかったものの、Astroはルート移動時にHTMLを再レンダリングするため、常時表示の実現が難しい。
+- iframeでの読み込み、headへの配置、astro:page-loadイベントの利用などを試したが、どの方法でもlive-2dの初期化が走り、hydrationに時間がかかる。その間は操作できず、何よりルート移動のたびにウィジェットが初期化される問題があった。
+- 最終的に、playgroundであるこのページだけにウィジェットを置くことにした。
+
+<Live2DWidget />

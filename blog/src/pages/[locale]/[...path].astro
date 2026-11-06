@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import { getCollection } from 'astro:content';
+import { getLocalizedCollection } from '@/utils/localizedContent';
 import NotFound from '../404.astro';
 import About from '../about.astro';
 import Blog from '../blog.astro';
@@ -18,24 +18,27 @@ type Props
     | { page: 'playground-post'; post: CollectionEntry<'playground'> };
 
 export async function getStaticPaths() {
-  const [posts, projects, playgrounds] = await Promise.all([
-    getCollection('blog'),
-    getCollection('project'),
-    getCollection('playground'),
-  ]);
-  posts.sort((a, b) => b.data.created.getTime() - a.data.created.getTime());
-  return ['en', 'jp'].flatMap((locale) => [
-    ...(['home', 'about', 'blog', 'project', 'playground', '404'] as const).map((page) => ({
-      params: { locale, path: page === 'home' ? undefined : page },
-      props: { page },
-    })),
-    ...posts.map((post, index) => ({
-      params: { locale, path: `blog/${post.id}` },
-      props: { page: 'blog-post', post, prev: posts[index + 1] ?? null, next: posts[index - 1] ?? null },
-    })),
-    ...projects.map((post) => ({ params: { locale, path: `project/${post.id}` }, props: { page: 'project-post', post } })),
-    ...playgrounds.map((post) => ({ params: { locale, path: `playground/${post.id}` }, props: { page: 'playground-post', post } })),
-  ]);
+  const paths = await Promise.all((['en', 'jp'] as const).map(async (locale) => {
+    const [posts, projects, playgrounds] = await Promise.all([
+      getLocalizedCollection('blog', locale),
+      getLocalizedCollection('project', locale),
+      getLocalizedCollection('playground', locale),
+    ]);
+    posts.sort((a, b) => b.data.created.getTime() - a.data.created.getTime());
+    return [
+      ...(['home', 'about', 'blog', 'project', 'playground', '404'] as const).map((page) => ({
+        params: { locale, path: page === 'home' ? undefined : page },
+        props: { page },
+      })),
+      ...posts.map((post, index) => ({
+        params: { locale, path: `blog/${post.id}` },
+        props: { page: 'blog-post', post, prev: posts[index + 1] ?? null, next: posts[index - 1] ?? null },
+      })),
+      ...projects.map((post) => ({ params: { locale, path: `project/${post.id}` }, props: { page: 'project-post', post } })),
+      ...playgrounds.map((post) => ({ params: { locale, path: `playground/${post.id}` }, props: { page: 'playground-post', post } })),
+    ];
+  }));
+  return paths.flat();
 }
 
 const props = Astro.props;

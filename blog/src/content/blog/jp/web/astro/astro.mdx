@@ -1,0 +1,602 @@
+---  
+title: "Astroについて"  
+created: 2025-02-26  
+updated: 2025-02-27  
+tags: ['blog', 'astro', 'meta-framework']  
+category: Web  
+thumbnail: /files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp  
+---  
+  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<TableOfContents>  
+- はじめに  
+- 特徴  
+  - Server Driven  
+  - Island  
+- Astroの使い方  
+  - Astroの構文を紹介  
+    - コンポーネントテンプレート  
+  - レイアウトを作る  
+  - ページを作る  
+    - 動的ルート  
+- Astroの長所  
+  - 分かりやすいドキュメントと翻訳  
+  - 手軽に扱えるSSGとSSR  
+  - ほかのフレームワークとの組み合わせ  
+- Astroの短所  
+  - Astroコンポーネントとクライアントアイランドの制約  
+  - ユーザー数が少ない  
+  - 動的なルート遷移の制約  
+</TableOfContents>  
+  
+  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp" alt="CleanShot_2025-02-26_20.22.28@2x" />  
+  
+## はじめに  
+  
+先ほどのブログ紹介記事でも触れたように、開発ブログを作るためにAstroを使ってみた経験と、その使い方について書いていきます。  
+  
+Astroは、VueのNuxtやReactのNextに似た、SSRとSSGを重視するフレームワークです。  
+ブログやマーケティングサイトなど、コンテンツを中心とするWebサイト向けに設計されたメタフレームワークで、  
+[公式サイト](https://docs.astro.build/ko/concepts/why-astro/)で説明されているように、SEOや読み込み速度が求められるサイトに向いています。  
+（NuxtやNextとは異なり、SPAとして動かすことはできません。）  
+  
+以下はAstro Docsの内容を要約して説明したものです。詳しく知りたい方は[Astro公式Docs](https://docs.astro.build/ko/getting-started/)を参照してください。  
+  
+## 特徴  
+  
+ほかのメタフレームワークと比べたAstroの特徴は、次のとおりです。  
+  
+1. Server Driven：SSGを重視し、必要に応じて一部をSSRにする  
+2. Island：静的な要素とサーバー、クライアントを分けるアイランド構造  
+  
+### Server Driven  
+  
+Astroはコンテンツを素早く表示するためにSSGを重視して設計されており、利用者のTTI(Time to Interactive)を短くするため、できるだけサーバーレンダリングを使うのが特徴です。  
+もう少し詳しく言うと、Astroでは最初にすべてのUIコンポーネントからJavascriptを取り除き、HTMLとCSSだけでレンダリングします。  
+その後、サーバーでレンダリングされたサーバーアイランドと、Hydration後に動作するクライアントアイランドが加わって、最終的なWebサイトが描画されます。  
+  
+こうした特徴により、Astroで作られたWebサイトはパフォーマンスとユーザー体験に優れています。  
+2023年3月という少し前の結果ではありますが、Astroチームが主要なメタフレームワークのベンチマークを行ったところ、  
+全体的にAstroが優勢だったことが分かります。  
+[Benchmark](https://astro.build/blog/2023-web-framework-performance-report/)  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_22.02.57.webp" alt="CleanShot_2025-02-26_22.02.57" />  
+  
+### Island  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_20.47.22@2x.webp" alt="CleanShot_2025-02-26_20.47.22@2x" />  
+  
+Astroが説明するアイランドアーキテクチャです。  
+  
+> アイランドアーキテクチャは、ページの大部分を高速な静的HTMLとしてレンダリングし、画像カルーセルなど、操作やパーソナライズが必要な部分に小さなJavaScriptの「アイランド」を加える仕組みです。  
+  
+サーバーアイランドとクライアントアイランドには、それぞれ次のような特徴があります。  
+  
+- サーバーアイランド  
+  - コンテンツを利用できるようになるまでレンダリングを遅らせるよう指定された、通常のサーバーレンダリングの[Astroコンポーネント](https://docs.astro.build/ko/basics/astro-components/)です。  
+  - サーバーアイランドは必ず.astroファイルで動作し、コンポーネントに`server:defer`を付けることでサーバーアイランドとして扱えます。  
+    ```astro  title="server.astro"  
+    ---  
+    import Avatar from '../components/Avatar.astro';  
+    ---  
+    <Avatar server:defer />  
+    ```  
+  - サーバーレンダリングが遅延している間は、代わりのコンテンツを表示できます。  
+  - 詳しくは[Astroのサーバーアイランド](https://docs.astro.build/ko/guides/server-islands/)を参照してください。  
+  
+- クライアントアイランド  
+  - 上の図にある対話的なアイランドで、JavaScriptがハイドレーションされることで動的に動作する部分です。  
+  - クライアントアイランドとして使うコンポーネントは、React、Vue、Svelteなど、さまざまなフロントエンドフレームワークで作って画面に配置できます。  
+  - コンポーネントに`client:*`ディレクティブを指定すると、クライアントアイランドとして動作させられます。  
+    - 逆に言えば、`client:*`を付けない場合はJavaScriptが動作せず、htmlとcssだけが描画されます。  
+    - Next.jsの'use client'に似ています。  
+      ```tsx title="Counter.tsx"  
+      // React의 useState 훅을 사용한 간단한 카운터 컴포넌트  
+      import { useState } from 'react';  
+      import './Counter.css';  
+  
+      interface CounterProps {  
+        children: JSX.Element;  
+        count: number;  
+      }  
+  
+      export default function Counter({ children, count: initialCount }: CounterProps) {  
+        const [count, setCount] = useState(initialCount);  
+        const add = () => setCount((i) => i + 1);  
+        const subtract = () => setCount((i) => i - 1);  
+  
+        return (  
+          <>  
+            <div className="counter">  
+              <button onClick={subtract}>-</button>  
+              <pre>{count}</pre>  
+              <button onClick={add}>+</button>  
+            </div>  
+            <div className="counter-message">{children}</div>  
+          </>  
+        );  
+      }  
+      ```  
+  
+      ```astro title="Playground.astro"  
+      ---  
+      import Counter from '@/components/Counter';  
+      import BaseLayout from '../layouts/baseLayout.astro';  
+  
+      const someProps = {  
+        count: 0,  
+      };  
+      ---  
+  
+      <BaseLayout title="playground">  
+        <div class="container">  
+          <h1>Playground</h1>  
+          <hr class="title-divider" />  
+          <br />  
+          <section>  
+            <Counter {...someProps} client:visible> // React 컴포넌트를 사용할 때, client 지시어를 붙이지 않는 경우에는 클릭 이벤트가 동작하지 않음.  
+              <h1>Hello, React!</h1>  
+            </Counter>  
+          </section>  
+          <section>  
+          </section>  
+        </div>  
+      </BaseLayout>  
+      ```  
+      - clientディレクティブを付けた場合：JavaScriptが動作するため、クリックすると画面が変化します。  
+      <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.12.22.webp" alt="CleanShot_2025-02-26_21.12.22" />  
+      - 付けない場合：UIは描画されますが、クリックしても動作しません。  
+      <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.10.56.webp" alt="CleanShot_2025-02-26_21.10.56" />  
+      - clientディレクティブを含むAstroのテンプレートディレクティブは、[こちらのドキュメント](https://docs.astro.build/ko/reference/directives-reference/#%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8-%EC%A7%80%EC%8B%9C%EC%96%B4)で確認できます。  
+  
+  
+  
+  
+  
+## Astroの使い方  
+  
+次のコマンドでAstroプロジェクトをセットアップできます。  
+  
+```shell  
+npm create astro@latest  
+```  
+  
+作成されるフォルダー構成とその説明は、[公式ドキュメント](https://docs.astro.build/ko/basics/project-structure/)を参照してください。  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-27_21.56.24@2x.webp" alt="CleanShot_2025-02-27_21.56.24@2x" />  
+  
+vscodeやwebstormなど、さまざまなエディターが.astro構文に対応しているので、好みに合わせて選べます。  
+webstormの対応は2024.2からで、サポートが始まってからまだそれほど時間はたっていません。  
+  
+> webstormでは、Astroコンポーネント内でscriptを二つ以上使うとsyntax highlightingが崩れる問題があります。  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-27_22.15.58.webp" alt="CleanShot_2025-02-27_22.15.58" />  
+  
+### Astroの構文を紹介  
+  
+Astroコンポーネントは、コンポーネントスクリプトとコンポーネントテンプレートに分かれており、それぞれ次の役割を持ちます。  
+  
+```astro title="Astro 컴포넌트 구조"  
+---  
+// Component Script (JS / TS)  
+---  
+{/* Component Template (HTML, JS/TS 표현식) */}  
+<head>  
+</head>  
+<body>  
+  
+</body>  
+  
+<style>  
+</style>  
+  
+<script>  
+</script>  
+```  
+  
+- コンポーネントスクリプト  
+  - ほかのコンポーネントを読み込む（.astro、.tsx、.vueなど）  
+  - テンプレートから参照する変数を作る  
+  - ほかのファイルやAPIからデータを取得する  
+- コンポーネントテンプレート  
+  - HTMLテンプレートを書く  
+  - scriptタグとstyleタグを書く  
+  
+> コンポーネントスクリプトはServer Sideで実行されるため、windowやdocumentなどのオブジェクトがない点に注意してください。  
+  
+#### コンポーネントテンプレート  
+  
+コンポーネントテンプレートの構文は、vueとjsxのよいところを取り入れたように感じました。  
+  
+- 変数やjs式は`{}`の中に書く  
+- 条件分岐：`{test ? (<div>a</div>) :  (<div>b</div>)}`  
+- 繰り返し：`{test.map((item) => <div>{item}</div>)}`  
+- vueと同じslot構文  
+  
+```astro title="ExamplePage.astro"  
+---  
+// 여기에 컴포넌트 스크립트를 작성합니다!  
+import Banner from '../components/Banner.astro';  
+import Avatar from '../components/Avatar.astro';  
+import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';  
+const myFavoritePokemon = [/* ... */];  
+const { title } = Astro.props;  
+---  
+<!-- HTML 주석을 지원합니다! -->  
+{/* JS 주석 구문도 유효합니다! */}  
+  
+<Banner />  
+<h1>Hello, world!</h1>  
+  
+<!-- 컴포넌트 스크립트의 props 및 기타 변수 사용 -->  
+<p>{title}</p>  
+  
+<!-- 컴포넌트 렌더링을 지연시키고 대체 로딩 콘텐츠 제공 -->  
+<Avatar server:defer>  
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>  
+</Avatar>  
+  
+<!-- `client:` 지시어를 사용하여 다른 UI 프레임워크 컴포넌트를 포함하고 하이드레이션합니다. -->  
+<ReactPokemonComponent client:visible />  
+  
+<!-- JSX와 유사하게 HTML과 JavaScript 표현식을 혼합합니다. -->  
+<ul>  
+  {myFavoritePokemon.map((data) => <li>{data.name}</li>)}  
+</ul>  
+  
+<!-- 템플릿 지시어를 사용하여 여러 문자열 또는 객체에서 클래스 이름을 빌드합니다! -->  
+<p class:list={["add", "dynamic", { classNames: true }]} />  
+```  
+  
+さらに、[追加のディレクティブ](https://docs.astro.build/ko/reference/directives-reference/)もあります。  
+  
+- `client:*`  
+- `server:*`  
+- `is:*`  
+  
+詳しくは[公式ドキュメント](https://docs.astro.build/ko/basics/astro-components/)を参照してください。  
+  
+### レイアウトを作る  
+  
+レイアウトは、ほかのフロントエンドフレームワークと同じように、次の形で構成できます。  
+（next.jsの構成に近いと言えます。）  
+  
+Astroのコンポーネントでは、Vueでもおなじみの`<slot/>`構造で子要素の内容を挿入します。  
+  
+ページとは異なり、レイアウトはreactなど、ほかのフレームワークでも作れますが、  
+AstroのAPIを活用し、サイトのパフォーマンスを保つためには、Astroコンポーネントで作ることが推奨されています。  
+  
+```astro title="ExampleLayout.astro"  
+---  
+import BaseHead from '../components/BaseHead.astro';  
+import Footer from '../components/Footer.astro';  
+const { title } = Astro.props;  
+---  
+<html lang="ko">  
+  <head>  
+    <meta charset="utf-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1">  
+    <BaseHead title={title}/>  
+  </head>  
+  <body>  
+    <nav>  
+      <a href="#">홈</a>  
+      <a href="#">블로그</a>  
+      <a href="#">연락처</a>  
+    </nav>  
+    <h1>{title}</h1>  
+    <article>  
+      <slot /> <!-- 콘텐츠가 여기에 삽입됩니다. -->  
+    </article>  
+    <Footer />  
+  </body>  
+  <style>  
+    h1 {  
+      font-size: 2rem;  
+    }  
+  </style>  
+</html>  
+```  
+  
+作成したレイアウトは、使いたいページでimportして利用できます。  
+下のページ例でMySiteLayoutにpropsとして渡しているtitleは、  
+上のレイアウト例の`const { title } = Astro.props;`で受け取り、利用できます。  
+  
+```astro title="useLayoutPageExample.astro"  
+---  
+import ExampleLayout from '../layouts/ExampleLayout.astro';  
+---  
+<ExampleLayout title="Home Page">  
+  <p>레이아웃으로 감싼 페이지입니다!</p>  
+</ExampleLayout>  
+```  
+  
+マークダウンから生成されるページにも、別途レイアウトを指定できます。この点は次の記事で扱う予定です。  
+詳しくは[こちらのドキュメント](https://docs.astro.build/ko/basics/layouts/)を参照してください。  
+  
+### ページを作る  
+  
+ページは、Astroのフォルダー構成に従って`./src/pages`にAstroコンポーネントを作ることで生成されます。  
+ほかのメタフレームワークと同じく、ファイル構成をもとにルートが作られます。  
+  
+>注意：ページは必ずAstroコンポーネントで作る必要があります。  
+  
+先ほど構文の説明で紹介したコンポーネントスクリプトとテンプレートを活用して、ページを作ればよいでしょう。  
+下のコードは、このブログのhome画面で使っているAstroコンポーネントです。  
+  
+```astro title="index.astro"  
+---  
+import Flickering from '@/components/home/Flickering';  
+import InteractiveIconCloud from '@/components/home/InteractiveIconCloud';  
+import Intro from '@/components/home/Intro';  
+import TerminalInfo from '@/components/home/TerminalInfo';  
+import GradualSpacing from '@/components/ui/gradual-spacing';  
+import LetterPullup from '@/components/ui/letter-pullup';  
+  
+import { Separator } from '@/components/ui/separator';  
+import BaseLayout from '@/layouts/baseLayout.astro';  
+  
+  
+// Full Astro Component Syntax:  
+// https://docs.astro.build/basics/astro-components/  
+---  
+  
+<BaseLayout title="Home">  
+  <div class="container overflow-x-hidden">  
+    <div class="mt-[20rem] max-md:mt-[10rem]"></div>  
+    <div class="flex justify-center ">  
+      <TerminalInfo client:visible />  
+    </div>  
+    <Flickering client:visible />  
+    <div id="intro">  
+      <div class="flex justify-center mt-[-21rem]">  
+        <div class="intro-wrapper">  
+          <LetterPullup  
+            className="max-sm:text-2xl dark:text-slate-200 text-slate-700 "  
+            words="Hello World! I'm Junja"  
+            delay={0.05}  
+            client:visible  
+          />  
+          <Intro client:visible />  
+        </div>  
+      </div>  
+      <div class="on-spacer"></div>  
+      <Separator className="my-8" />  
+        <GradualSpacing  
+          className="font-display text-center text-4xl max-sm:text-2xl font-extrabold dark:text-slate-200 text-slate-700"  
+          text="Technologies I've worked"  
+          client:visible  
+        />  
+      <div class="flex justify-center">  
+  
+        <InteractiveIconCloud client:visible />  
+      </div>  
+    </div>  
+  
+  
+  
+  </div>  
+  
+</BaseLayout>  
+  
+<script is:inline>  
+  setTimeout(() => {  
+    if (document.getElementById('intro'))  
+      document.getElementById('intro').classList.add('visible');  
+    if (document.querySelector('.scroll-animation') && document.querySelector('.container')) {  
+      if (window.innerHeight < (document.querySelector('.container').offsetHeight + 224)) {  
+        document.querySelector('.scroll-animation').classList.remove('hidden');  
+      }  
+    }  
+  }, 4000);  
+</script>  
+  
+```  
+  
+#### 動的ルート  
+  
+Astroの動的ルートは、`./src/pages/[slug].astro`のような形で構成できますが、  
+SSGがベースなので、対応するファイルが存在するか、生成される必要があります。  
+  
+そのため、動的ルートを使う場合はgetStaticPaths関数を必ず宣言する必要があります。  
+  
+```astro title="src/pages/[slug].astro"  
+---  
+export function getStaticPaths() {  
+  return [  
+    {params: {slug: 'clifford'}},  
+    {params: {slug: 'rover'}},  
+    {params: {slug: 'spot'}},  
+  ];  
+}  
+  
+const { slug } = Astro.params;  
+---  
+<div>Good slug, {slug}!</div>  
+```  
+  
+この関数をもとに、Astroの実行時やビルド時に動的なルートとhtmlファイルが生成されます。  
+この性質から、コミュニティサイトのように大量のページが動的に作られる用途には、Astroは向いていません。  
+  
+詳しくは[こちらのドキュメント](https://docs.astro.build/ko/guides/routing/#%EB%8F%99%EC%A0%81-%EA%B2%BD%EB%A1%9C)を参照してください。  
+  
+---  
+  
+  
+  
+## Astroの長所  
+  
+私が感じたAstroの長所について書いていきます。  
+  
+### 分かりやすいドキュメントと翻訳  
+  
+ドキュメントがどれだけ読みやすく、充実しているかが技術選定を左右するという開発者の統計もあるほど、  
+ライブラリーを使う開発者にとって、公式ドキュメントのUI/UXは大きな意味を持つと思います。  
+  
+その点、Astroは親切なチュートリアルに、洗練されて読みやすい公式ドキュメント、質の高い翻訳までそろっていて、  
+Astroを使ううえで、公式以外の資料をあまり探す必要がないほど充実しています。  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.32.44@2x.webp" alt="CleanShot_2025-02-26_21.32.44@2x" />  
+  
+### 手軽に扱えるSSGとSSR  
+  
+Astroは基本的にSSRが前提なので、そのために別途対応する部分はありません。  
+JavaScriptが必要なクライアントアイランドだけ気を付ければよく、それも`client:*`ディレクティブで簡単に設定できます。  
+優先順位まで指定できます。  
+  
+Server RenderとClient Renderの結果が違うと警告を出し続けるなど、サイトを作るうえで見落としがちな点を補ってくれるのもよいところだと思います。  
+  
+### ほかのフレームワークとの組み合わせ  
+  
+クライアントアイランドとして使うコンポーネントに限り、さまざまなフロントエンドフレームワークを利用できます。  
+パフォーマンスを重視する部分にはQwikやSvelte、複雑なロジックや豊富なライブラリーを使いたい部分にはReact、といった使い分けができるのが利点です。  
+  
+以下は現在開発中のブログの構成で、コンポーネントの大部分はReactで作っています。  
+ブログのPlaygroundでは、VueやSveleteなど、さまざまなフレームワークを試す予定です。  
+  
+| Components                                                   | Pages & Layouts                                              |  
+| ------------------------------------------------------------ | ------------------------------------------------------------ |  
+| <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.41.35.webp" alt="CleanShot_2025-02-26_21.41.35" /> | <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.42.09.webp" alt="CleanShot_2025-02-26_21.42.09" /> |  
+  
+## Astroの短所  
+  
+実際にAstroを使う中で、次のような不便さを感じました。  
+それでも得られるメリットのほうが大きいと思うので、これからもこのブログはAstroで作っていくつもりです。  
+  
+### Astroコンポーネントとクライアントアイランドの制約  
+  
+Astroのアイランド構造上、ページ自体は必ず`.astro`ファイルで、Astroコンポーネントとして実装する必要があります。  
+（例外として、`.markdown`はページにできます。）  
+また、クライアントアイランドの中ではAstroが提供するAPIを利用できません。  
+  
+Astroコンポーネント自体にも、次のような制約があります。  
+  
+- コンポーネントスクリプトとテンプレート内のscriptではスコープが共有されないため、テンプレート側のscriptからコンポーネントスクリプトで宣言した変数や関数を利用できません。  
+- コンポーネントスクリプト内の値は、ReactのuseStateのように利用者の操作で動的に変更できません。（SSGのためです。）  
+- 必要な場合は、下のコンポーネントテンプレートでdocument.addEventListenerなどを使い、直接DOMにアクセスして変更します。  
+  
+```astro title="component.astro"  
+---  
+// 컴포넌트 스크립트 (JS / TS)  
+  
+import Counter from '@/components/Counter';  
+import BaseLayout from '../layouts/baseLayout.astro';  
+  
+const someProps = {  
+  count: 0,  
+};  
+  
+function redirect() {  
+  Astro.redirect('/blog');  
+}  
+  
+---  
+<!-- 컴포넌트 템플릿 (HTML + JS 표현식) -->  
+  
+<BaseLayout title="playground">  
+  <div class="container">  
+    <h1>Playground</h1>  
+    <hr class="title-divider" />  
+    <br />  
+    <section>  
+      <Counter {...someProps} client:visible>  
+        <h1 id="playground-counter">Hello, React!</h1>  
+      </Counter>  
+    </section>  
+    <section>  
+    </section>  
+  </div>  
+</BaseLayout>  
+  
+<script>  
+  document.getElementById('playground-counter').addEventListener('click', redirect); // redirect는 undefiend  
+</script>  
+```  
+  
+こうした理由から、NextやNuxtなどのメタフレームワーク、あるいはVueやReactのSPAに比べると、Javascriptを活用できる範囲が限られます。  
+  
+### ユーザー数が少ない  
+  
+Astroは2021年に登場した比較的新しいフレームワークなので、ReactやVueに比べるとユーザー数が少なく、  
+関連ライブラリーやユーザーによる資料も不足しています。  
+開発中に困ったことを検索しても情報が見つからないことがあり、作るのには少し苦労しました。  
+  
+### 動的なルート遷移の制約  
+  
+Astroでは、NextのNavagtion APIやReact、VueのRouterライブラリーのように、`router.push('/')`などを使った動的なナビゲーションはできません。  
+代わりにAstroではanchorタグでページを遷移させますが、実際に開発する中ではこの点が大きな制約に感じられました。  
+[Astroのルーティング](https://docs.astro.build/ko/guides/routing/)  
+  
+```tsx title="Navigation.tsx"  
+import type React from 'react';  
+  
+import { Button } from '@/components/ui/button.tsx';  
+import { Dock, DockIcon } from '@/components/ui/dock';  
+  
+interface Props {  
+  tab: string;  
+}  
+  
+export default function DocNav({ tab }: Props) {  
+  function checkRoute(e: string) {  
+    return tab === e ? 'default' : 'ghost';  
+  }  
+  return (  
+    <Dock direction="middle" className="doc-nav max-md:hidden">  
+      <DockIcon>  
+        <Button variant={checkRoute('home')} size="icon" asChild className="nav-btn">  
+          <a href="/">  
+            Home  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('blog')} size="icon" asChild className="nav-btn">  
+          <a href="/blog/">  
+            Blog  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('project')} size="icon" asChild className="nav-btn">  
+          <a href="/project/">  
+            Project  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('playground')} size="icon" asChild className="nav-btn">  
+          <a href="/playground/">  
+            Playground  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('about')} size="icon" asChild className="nav-btn">  
+          <a href="/about/">  
+            About  
+          </a>  
+        </Button>  
+      </DockIcon>  
+    </Dock>  
+  );  
+}  
+```  
+  
+`window.location.href = ${link}`で強制的にページを移動させることはできますが、  
+その場合はAstroが提供するTrainsitionなどの効果を利用できないので、推奨される方法ではありません。  
+  
+このブログではパフォーマンス上の理由から、モバイル画面のナビゲーションメニューでその記述を使いましたが、  
+ページを移動すると一瞬ダークモードが解除されるなどの問題がありました。  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_22.39.30.webp" alt="CleanShot_2025-02-26_22.39.30" />  
+  
+  
+  
+  
+  

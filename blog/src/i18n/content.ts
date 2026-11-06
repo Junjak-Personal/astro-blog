@@ -34,7 +34,7 @@ export const contentMessages = {
   'content-gallery.scroll': { ko: '스크롤하면 흐릅니다 ↓', en: 'Scroll to explore ↓', jp: 'スクロールして見る ↓' },
   'music-controls.collapse': { ko: '전체 접기', en: 'Collapse all', jp: 'すべて折りたたむ' },
   'music-controls.expand': { ko: '전체 펼치기', en: 'Expand all', jp: 'すべて開く' },
-  'music-controls.translation': { ko: '한국어 번역 {number}', en: 'Korean translation {number}', jp: '韓国語訳 {number}' },
+  'music-controls.translation': { ko: '한국어 번역 {number}', en: 'English translation {number}', jp: '日本語訳 {number}' },
   'music-controls.cover': { ko: 'album cover', en: 'album cover', jp: 'album cover' },
   'music-controls.apple': { ko: 'Apple Music ↗', en: 'Apple Music ↗', jp: 'Apple Music ↗' },
   'music-controls.youtube': { ko: 'YouTube Music ↗', en: 'YouTube Music ↗', jp: 'YouTube Music ↗' },

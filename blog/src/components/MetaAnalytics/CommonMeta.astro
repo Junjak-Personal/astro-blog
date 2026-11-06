@@ -42,7 +42,7 @@ const resolvedImage = new URL(image || '/og_banner.png', Astro.site).toString();
   rel="alternate"
   type="application/rss+xml"
   title={siteName}
-  href={new URL('/rss.xml', Astro.site)}
+  href={new URL(locale === 'ko' ? '/rss.xml' : `/${locale}/rss.xml`, Astro.site)}
 />
 <meta name="naver-site-verification" content="3e850a69b6936ef8efc7e19a3cc82a3ec1ae0fc0" />
 <meta name="generator" content={Astro.generator} />

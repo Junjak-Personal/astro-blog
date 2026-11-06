@@ -1,0 +1,37 @@
+---  
+title: 日本酒紹介 ver2
+duration: 2024-04-21 ~ 2024-04-23
+techStacks: ['typescript', 'vue', 'slidev', 'netlify']  
+thumbnail: /files/project/sake-slide2/CleanShot_2025-03-06_02.44.07@2x.webp
+description: Slidevで作った日本酒紹介のプレゼンテーションです。<br/>ver1で使った頃からSlidevに多くの更新が入りました。<br/>それを反映し、新しく追加されたさまざまなプレゼンテーション用APIを活用しました。<br/>各スライドは基本的にMarkdownで書き、一部にVueコンポーネントを使っています。
+---  
+
+import { ProjectCarousel } from '@/components/Project/ProjectCarousel';
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## 説明
+Slidevで作った日本酒紹介のプレゼンテーションです。  
+ver1で使った頃からSlidevに多くの更新が入りました。   
+それを反映し、新しく追加されたさまざまなプレゼンテーション用APIを活用しました。  
+各スライドは基本的にMarkdownで書き、一部にVueコンポーネントを使っています。
+## プロジェクトの画面
+<ProjectCarousel images={[
+  '/files/project/sake-slide2/CleanShot_2025-03-06_02.44.07@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.00@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.37@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.51@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.51@2x.webp'
+  ]} client:visible />
+
+### サイトリンク
+- [日本酒紹介 ver2](https://sake-slide-v2.netlify.app/)
+- [Github](https://github.com/JunjaK/sake-slide2)
+
+## 技術スタック
+- Slidev: プレゼンテーションフレームワーク
+- Vue: 一部の画面とコンポーネント
+- Netlify: デプロイ
+
+

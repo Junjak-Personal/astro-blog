@@ -54,7 +54,7 @@ function buildJsonLd() {
       'headline': schema.title,
       'description': schema.description,
       'url': pageUrl,
-      'inLanguage': 'ko',
+      'inLanguage': htmlLanguage(getLocaleFromUrl(Astro.url)),
       'author': {
         '@type': 'Person',
         'name': schema.author || 'Jun',

@@ -1,0 +1,37 @@
+---  
+title: Introduction to Sake ver2
+duration: 2024-04-21 ~ 2024-04-23
+techStacks: ['typescript', 'vue', 'slidev', 'netlify']  
+thumbnail: /files/project/sake-slide2/CleanShot_2025-03-06_02.44.07@2x.webp
+description: An introduction to sake made with Slidev.<br/>Slidev has received many updates since I used it for ver1.<br/>This version uses a range of newly added presentation APIs.<br/>The slides are primarily written in Markdown, with Vue components used in some places.
+---  
+
+import { ProjectCarousel } from '@/components/Project/ProjectCarousel';
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## Description
+An introduction to sake made with Slidev.  
+Slidev has received many updates since I used it for ver1.   
+This version uses a range of newly added presentation APIs.  
+The slides are primarily written in Markdown, with Vue components used in some places.
+## Project screenshots
+<ProjectCarousel images={[
+  '/files/project/sake-slide2/CleanShot_2025-03-06_02.44.07@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.00@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.37@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.51@2x.webp', 
+  '/files/project/sake-slide2/CleanShot_2025-03-06_15.49.51@2x.webp'
+  ]} client:visible />
+
+### Site links
+- [Introduction to Sake ver2](https://sake-slide-v2.netlify.app/)
+- [Github](https://github.com/JunjaK/sake-slide2)
+
+## Tech stack
+- Slidev: Presentation framework
+- Vue: Some screens and components
+- Netlify: Deployment
+
+

@@ -1,0 +1,37 @@
+---
+title: Live 2d Widget
+duration: 2025-03-07 ~ 2026-02-19
+techStacks: ['typescript','astro']
+thumbnail: /files/playground/live2d-test.webp
+description: A test page for implementing a Web Page Live2D Widget.
+---
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import Live2DWidget from '@/components/layouts/Live2DWidget.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## Description
+A test page for implementing a Web Page Live2D Widget using the library below.  
+The model files are quite large, so they take a while to appear.    
+
+I added three free models: Frieren, Anya, and Hiyori.  
+To switch models, click the model-switching icon at the very top of the menu.
+
+- [GithubLink](https://github.com/stevenjoezhang/live2d-widget)
+- [The fork I am working on](https://github.com/JunjaK/live2d-widget)
+
+## Work completed
+- Cubism 5 support (live2d-widgets v1.0)
+- Models: Frieren, ANIYA, Hiyori (switchable)
+- Applied shadcn design token styling
+- Applied mingcute icons
+- Draggable positioning persisted in localStorage
+- Model file caching using the Cache API
+
+## Results
+- I wanted the widget to remain visible in the layout, but Astro rerenders HTML during route navigation, making persistent display difficult.
+- I tried several approaches, including an iframe, placing it in the head, and the astro:page-load event. Every approach triggered live-2d initialization and lengthy hydration, during which interaction was unavailable. The biggest issue was that the widget kept resetting on route changes.
+- In the end, I decided to include the widget only on this playground page.
+
+<Live2DWidget />

@@ -1,4 +1,4 @@
-import { getCollection } from 'astro:content';
+import { getLocalizedCollection } from './localizedContent';
 import getReadingTime from 'reading-time';
 
 export function wordCount(content: string) {
@@ -9,7 +9,7 @@ export function wordCount(content: string) {
 }
 
 export async function totalCount() {
-  const blogs = await getCollection('blog');
+  const blogs = await getLocalizedCollection('blog', 'ko');
   const totalWords = blogs.reduce((acc, post) => {
     return acc + (post.body ? getReadingTime(post.body).words : 0);
   }, 0);
@@ -41,7 +41,7 @@ export function readingTime(content: string) {
 }
 
 export async function totalReadingTime() {
-  const blogs = await getCollection('blog');
+  const blogs = await getLocalizedCollection('blog', 'ko');
   const totalReadingTime = blogs.reduce((acc, post) => {
     return acc + getReadingTime(post.body).minutes;
   }, 0);

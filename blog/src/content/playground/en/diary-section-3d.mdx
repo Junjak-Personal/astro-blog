@@ -1,0 +1,251 @@
+---
+title: Diary Section Development Notes
+duration: 2026-02-14 ~ 2026-02-20
+techStacks: ['typescript', 'react', 'threedotjs', 'framer']
+thumbnail: /files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp
+description: Trial and error while developing an image gallery for diary posts. Three.js WebGL → CSS 3D → R3F ring carousel → simple carousel
+---
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import { DiarySection, DiaryGalleryUnified, DiarySectionCarousel } from '@/components/Playground/DiarySection3D';
+import { DiaryCarousel } from '@/components/Blog/DiaryGallery';
+import ImageLoader from '@/components/Blog/ImageLoader';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## Background
+
+I wanted to create an image gallery for diary posts on the blog.  
+I had been neglecting the blog and started during the Lunar New Year holiday because I had nothing else to do.
+
+
+After seeing this [template](https://v0.app/templates/3-d-gallery-photography-template-JUFK37Esjlj?via=TRX3Vvo), I wanted to present images and writing dynamically inside blog posts in the same way.
+
+<ImageLoader src="/files/playground/diary-seciton-sample.webp" alt="diary-section-sample" />
+
+I thought Three.js would be a good fit, but I did not actually know Three.js,  
+so I decided to implement it with AI (Claude Code).
+
+
+To give away the ending, trial and error led to the simplest approach:
+
+1. Place images in 3D space with Three.js
+2. CSS 3D Transform 
+3. Unified Three.js gallery
+4. Three.js ring carousel
+5. Simple image carousel.
+
+---
+
+## 1. Three.js (WebGL) version
+
+The first version was built with `@react-three/fiber`.
+
+### Implementation
+- Images placed as 3D planes on a WebGL Canvas
+- Planes move along the Y axis with scroll progress (parallax)
+- Camera dolly and vertical travel linked to scrolling
+- Fade in/out based on `smoothstep`
+- Soft fades at image edges using alphaMap DataTexture
+- Fog makes distant images disappear naturally
+
+### Problems
+- A single Three.js instance worked fine, but nine DiarySection components each creating an independent WebGL Canvas on a diary page hit the GPU context limit.
+- Image arrangement and camera movement felt unnatural
+- Severe performance degradation on mobile
+- Heavy scroll stuttering and noticeable frame drops
+- The demo below has only one instance, so it has no performance problems; the issues appear with nine instances at once, as on the actual diary page.
+
+<DiarySection client:visible variant="webgl"
+  images={[
+    { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "Asakusa" },
+    { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "Sukiya gyudon" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "Sacred horse Akari-chan" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "Kanda Shrine" },
+  ]}
+>
+
+## Three.js version demo
+Scrolling moves images through 3D space on the WebGL Canvas.  
+Some images overlap unnaturally, which is a little distracting.  
+There are only four images here, so performance is fine, but a diary post usually contains about 20 images,
+and that caused substantial frame drops.
+
+</DiarySection>
+
+---
+
+## 2. CSS 3D Transform version
+
+Reimplemented with CSS 3D transforms and framer-motion based on the Three.js experience.
+The first Three.js attempt had already clarified the direction for the 3D layout and scroll interactions,  
+so moving to CSS 3D brought the result reasonably close to what I wanted.
+
+### Implementation
+- 3D depth with CSS `perspective` and `translateZ / rotateY`
+- Scroll-driven animation with framer-motion `useScroll` and `useTransform`
+- Sequential fade in/out using independent scroll windows for each image
+- Camera simulation through container scale and translateY
+- Soft edge fade using a `mask-image` gradient
+- radial gradient fog (vignette)
+- Focus mode toggle, thumbnail strip, and lightbox
+
+### Improvements over Three.js
+- Uses only browser compositor GPU acceleration without a WebGL Canvas, resolving the context-limit issue
+- No performance problems when multiple sections share a page
+- Further optimization is needed, but scrolling is somewhat smoother than the Three.js version
+
+<DiarySection client:visible
+  images={[
+    { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "Asakusa" },
+    { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "Sukiya gyudon" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "Sacred horse Akari-chan" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "Kanda Shrine" },
+  ]}
+>
+
+## CSS 3D version demo
+As you scroll, images with depth created by `perspective` and `translateZ` appear in sequence.
+Unnatural image overlap still remains.  
+Random image positions and sizes mean that certain content is not displayed properly.
+
+</DiarySection>
+
+---
+
+## 3. Unified Three.js gallery
+
+Believing multiple canvases in the ring carousel caused substantial performance overhead,
+I also tried unifying the entire page in a single Three.js Canvas.
+
+### Concept
+- `DiaryGalleryUnified`: Render images from all sections in a single Canvas
+- Camera movement handles transitions between sections
+- `useUnifiedScroll` maps scroll progress to section indices
+- Shared texture cache improves memory efficiency
+
+### Why it was abandoned
+- Fundamentally clashes with Astro’s island architecture: lazy hydration through `client:visible` cannot coexist with a single Canvas
+- All image textures need to load at once on page entry
+- Accessibility issues with overlaying text content over a 3D Canvas
+
+<DiaryGalleryUnified client:visible
+  sections={[
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "Asakusa" },
+        { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "Sukiya gyudon" },
+      ],
+    },
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "Sacred horse Akari-chan" },
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "Kanda Shrine" },
+      ],
+    },
+  ]}
+>
+
+## Section 1
+
+Unified gallery demo — images from every section are rendered in one Canvas.
+The camera moves with scrolling, making images appear in sequence.
+
+## Section 2
+
+This is the second section. Dots on the right indicate the current section; clicking an image opens the lightbox.
+
+</DiaryGalleryUnified>
+
+---
+
+## 4. Three.js ring carousel
+
+CSS 3D had implementation limits, and the first Three.js attempt crashed too frequently on mobile.  
+I concluded that displaying many photos like a gallery in the example template was not feasible,
+so I looked for a different direction and found a Three.js ring [carousel example](https://3d-carousel.wawasensei.dev/).
+
+
+### Concept
+- 3D ring (circular) carousel based on `@react-three/fiber`
+- Images arranged around a cylinder; clicking section dots rotates the ring
+- Immersive view with a height of `calc(100dvh - 150px)`
+- Soft image-edge fading with alphaMap
+- Click-based navigation instead of scrolling
+
+### Implementation attempts
+- `CarouselRing.tsx`: R3F Scene — circular image arrangement, rotated toward the camera using `atan2`
+- `UnifiedImagePlane.tsx`: Individual image planes — texture loading, alphaMap, and opacity animation
+- `buildCarouselLayout.ts`: Circular layout mathematics (radius and angle calculations)
+- `carouselAlphaMap.ts`: Generate soft-edge DataTexture (RGBAFormat required — learned about the GREEN channel issue)
+- `texturePreload.ts`: Concurrency-limited texture loader, `createImageBitmap` with canvas fallback
+
+<DiarySectionCarousel client:visible
+  sections={[
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "Asakusa" },
+        { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "Sukiya gyudon" },
+          { src: "/files/blog/diary/japan-around-trip/assets/20241223_020939713_iOS.webp", alt: "Matsushima coastal view 1" },
+        
+      ],
+    },
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "Sacred horse Akari-chan" },
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "Kanda Shrine" },
+         { src: "/files/blog/diary/25-01-tokyo/assets/20250120_112504045_iOS.webp", alt: "Hitsuji grilled lamb" },
+
+      ],
+    },
+  ]}
+>
+
+## Section 1
+
+R3F ring carousel demo — scrolling rotates the 3D ring and switches images. You can also move between sections using the dots below.
+
+## Section 2
+
+This is the second section. Clicking an image on the ring opens the lightbox.
+
+</DiarySectionCarousel>
+
+---
+
+## 5. Final version — DiaryCarousel
+
+The Three.js ring carousel resolved the performance issues to some extent and worked on mobile.  
+Its scrolling and presentation were fine in a PC browser,
+but on mobile, scrolling and viewing content were awkward, making me question whether this approach was worthwhile.  
+
+Then I saw [a post](https://antfu.me/posts/hello-tokyo) on the blog of anthony-fu, whom I follow, consisting simply of a carousel and text paragraphs.  
+That made me wonder whether complexity was necessary at all. A simple approach was easier to view on mobile, so I decided to keep it simple.
+
+<ImageLoader src="/files/playground/anthony-fu-blog-post.webp" alt="anthony-fu" />
+
+
+
+### Implementation
+- Carousel based on `embla-carousel-react` (reusing the project’s existing ui/carousel component)
+- Click an image to open a lightbox (`ImageLightbox`)
+- Video support (`videos` prop)
+- Counter badge (current slide / total)
+- Desktop: left/right arrows; mobile: swipe
+
+### Advantages
+- No additional bundle — combines existing `Carousel` and `ImageLightbox`
+- A single component under 100 lines
+- Much smaller bundle than the 3D gallery (removed Three.js, R3F, and framer-motion 3D logic)
+- Mobile swipe UX close to native
+- Simple MDX authoring with `client:visible` and self-closing JSX
+- Good accessibility — keyboard navigation and screen-reader support
+
+<DiaryCarousel client:visible
+  content={[
+    { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "Asakusa" },
+    { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "Sukiya gyudon" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "Sacred horse Akari-chan" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "Kanda Shrine" },
+  ]}
+/>

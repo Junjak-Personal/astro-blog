@@ -1,0 +1,394 @@
+---  
+title: 個人ブログ
+duration: 2025-02-10 ~ current
+techStacks: ['typescript', 'react', 'astro', 'tailwindcss', 'framermotion', 'githubactions', 'docker', 'nginx']  
+thumbnail: /files/project/blog/CleanShot_2025-03-06_02.12.32@2x.webp
+description: Astroで作った個人ブログです。<br/>自分の簡単な紹介、これまでのプロジェクト、時間のあるときに書いた記事を読めます。<br/>Blog・Project・PlaygroundにはAstroのContent Apiを使い、各投稿を.mdxファイルで書くことでコンポーネントを埋め込めるようにしています。
+---  
+
+import { ProjectCarousel } from '@/components/Project/ProjectCarousel';
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import ImageLoader from '@/components/Blog/ImageLoader.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## 説明
+Astroで作った個人ブログです。  
+自分の簡単な紹介、これまでのプロジェクト、時間のあるときに書いた記事を読めます。  
+Blog・Project・PlaygroundにはAstroのContent Apiを使い、各投稿を.mdxファイルで書くことでコンポーネントを埋め込めるようにしています。
+## プロジェクトの画面
+<ProjectCarousel images={[
+  '/files/project/blog/CleanShot_2025-03-06_02.12.32@2x.webp', 
+  '/files/project/blog/CleanShot_2025-03-06_15.21.49@2x.webp',
+  '/files/project/blog/CleanShot_2025-03-06_15.22.25@2x.webp',
+  '/files/project/blog/CleanShot_2025-03-06_15.22.34@2x.webp', 
+  '/files/project/blog/CleanShot_2025-03-06_15.22.49@2x.webp']} client:visible />
+
+### サイトリンク
+- [個人ブログ](https://www.jun-devlog.win/)
+- [Github](https://github.com/JunjaK/astro-blog)
+## 技術スタック
+- Astro: SSGフレームワーク
+- React: 主要コンポーネントの作成
+- TailwindCSS: スタイリング
+- Framer Motion: アニメーション
+- Github Actions: 自動デプロイ
+- Docker: コンテナイメージのビルド
+- Nginx: Webサーバー
+- Cloudflare: ドメイン管理
+
+## 開発の過程
+### 技術の選定
+- Astro
+    - state of js 2024で関心・注目・肯定的評価の3冠を獲得するほど、メタフレームワークとして注目されていた
+    - そこでAstroを使った個人ブログを作りたくなり、このプロジェクトを始めた
+    - Astroの詳しい評価はブログ記事を参照。  
+      [Astroフレームワークの評価](https://www.jun-devlog.win/blog/web/astro/astro)
+- React
+    - 今も多くの人から圧倒的に支持されるReactに、もっと慣れたかった
+    - 最近とても人気のあるReactベースのCSS Library、Shadcn UIを使ってみたかった
+
+### UIの構成
+
+- アニメーションや動きのある効果を付けたくて、MotionとTailwindCSSを組み合わせて実装した。  
+
+<table>
+  <tr>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.29.06.webp" alt="gif1" />
+    </td>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.30.20.webp" alt="gif2" />
+    </td>
+  </tr>
+</table>
+
+- 使いやすさのため、レスポンシブUIとDark/Lightモードを開発
+
+<table>
+  <tr>
+    <th style="width: 50%;">PC画面</th>
+    <th style="width: 50%;">Mobile画面</th>
+  </tr>
+  <tr>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.24.532x.webp" alt="gif1" />
+    </td>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.25.332x.webp" alt="gif2" />
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th style="width: 50%;">Darkモード</th>
+    <th style="width: 50%;">Lightモード</th>
+  </tr>
+  <tr>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.27.292x.webp" alt="gif1" />
+    </td>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.27.402x.webp" alt="gif2" />
+    </td>
+  </tr>
+</table>
+
+### ブログページの開発
+- AstroのContent APIを活用
+  - ブログ記事をMarkdownで書きたかったため、AstroのContent APIを使った
+
+  ```tsx
+  /**
+   * 파일 경로: ./src/content/config.ts
+   * 역할 설명: mdx의 frontmatter에 적혀있는 속성을 스키마로 가지는 콜렉션 지정
+   */ 
+  import { defineCollection, z } from 'astro:content';
+  
+  const blog = defineCollection({
+    type: 'content',
+    schema: z.object({
+      title: z.string(),
+      category: z.string(),
+      thumbnail: z.string().optional(),
+      created: z.coerce.date(),
+      tags: z.array(z.string()).optional(),
+      updated: z.coerce.date().optional(),
+    }),
+  });
+  
+  export const collections = { blog };
+  ```
+
+  ```tsx
+  /**
+   * 파일 경로: ./pages/blog/[...slug].astro
+   * 역할 설명: post slug 경로와 일치하는 mdx를 렌더링하는 동적 페이지 생성
+   */ 
+  ---
+  import { type CollectionEntry, getCollection } from 'astro:content';
+  
+  export async function getStaticPaths() {
+    const posts = await getCollection('blog');
+    return posts.map((post, index) => ({
+      params: { slug: post.slug },
+      props: {
+        post,
+        prev: posts[index - 1] || null,
+        next: posts[index + 1] || null,
+      },
+    }));
+  }
+  
+  const { post, prev, next } = Astro.props;
+  const { Content } = await post.render();
+  ---
+  
+  <MdLayout post={post.data} nav={{ prev, next }} url={`/blog/${post.slug}`}>
+    <Content />
+  </MdLayout>
+  
+  ```
+
+- 画面構成
+
+  <table>
+    <tr>
+      <th style="width: 50%;">ブログ一覧画面</th>
+      <th style="width: 50%;">ブログ記事画面</th>
+    </tr>
+    <tr>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.44.392x.webp" alt="gif1" />
+      </td>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.45.382x.webp" alt="gif2" />
+      </td>
+    </tr>
+  </table>
+
+
+
+- 投稿検索用のfuzz searchを実装
+  - fuse.jsを使い、ユーザーが検索しやすいようにした
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.46.142x.webp" alt="gif2" />
+
+
+- アセットローダーとコード表示のためのMDX処理
+  - Expressive code、Mermaid、Katexを追加
+  - 詳しくはブログ記事を参照。https://www.jun-devlog.win/blog/web/common/markdown-test-mdx
+
+  <table>
+    <tr>
+      <th style="width: 33.3%;">Expressive code</th>
+      <th style="width: 33.3%;">Mermaid</th>
+      <th style="width: 33.3%;">Katex</th>
+    </tr>
+    <tr>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.35.252x.webp" alt="gif2" />
+      </td>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.36.042x.webp" alt="gif2" />
+      </td>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.35.462x.webp" alt="gif2" />
+      </td>
+    </tr>
+  </table>
+
+  - 画像の遅延読み込みに対応したImageLoaderを開発
+
+    ```tsx
+    // 이미지 로더
+    ---
+    import { getBasePathWithUrl } from '@/utils/getBasePathWithUrl.ts';
+    import React from 'react';
+    
+    type Props = {
+      src?: string;
+      alt?: string;
+      class?: string;
+      width?: number;
+      height?: number;
+    };
+    
+    const { src, alt = 'blog-image', class: className, width, height } = Astro.props;
+    ---
+    
+    <img
+      src={getBasePathWithUrl(src)}
+      alt={alt ?? 'blog-image'}
+      loading="lazy"
+      onerror={`this.src='/fallbackImg.svg'`}
+      class={className}
+      width={width}
+      height={height}
+    />
+    
+    ```
+
+    ```tsx
+    // mdx 파일
+    ---  
+    title: Astro에 대해서  
+    created: 2025-02-26  
+    updated: 2025-02-27  
+    tags: ['blog', 'astro', 'meta-framework']  
+    category: Web  
+    thumbnail: /files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp  
+    ---  
+      
+    import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+    import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+    
+    <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp" alt="CleanShot_2025-02-26_20.22.28@2x" />  
+    
+    ## 시작으로  
+      
+    앞서 작성한 블로그 소개 글에서 언급했듯, 개발 블로그를 만들기 위하여 Astro를 사용해본 경험, 사용법에 대하여 기술하겠습니다.  
+    ...
+    ```
+
+- 投稿データを前処理するjsファイルを追加
+
+  - Markdownエディターで記事を書いてからブログサイトに追加するため、前処理が必要
+  - 画像パスや他のコンポーネントを追加する前処理プラグインを作り、コンテンツ追加前に実行する
+    - addMdEnter.js
+    - convertLoader.js
+    - removeUnusedImages.js
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.43.472x.webp" alt="gif2" />
+
+
+### Docker・NginxによるWebサーバーと自動デプロイ環境の構築
+
+> 問題の把握と解決策の検討
+
+- 開発初期はnetlifyにデプロイしてサイトを作成
+  - 問題: 写真が増えるにつれ、GitHubで容量超過の警告が出始めた
+  - 解決策: Amazon S3か個人のファイルサーバーを用意し、ブログのアセットを保存する
+- 個人のLinuxサーバーにファイルサーバーを構築することにしたが、
+  構成を変えるついでに、WebサーバーもLinuxサーバーへ移すことにした
+
+---
+
+> Webサーバーと自動デプロイ環境の構成
+
+- Github Action runnerのインストール
+
+  - GitHubのガイドに従い、Linuxサーバーにself-hosted runnerをインストール
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.50.542x.webp" alt="gif2" />
+
+- nginx・docker file・workflowの設定
+
+  - リモートブランチへのpush時にrunnerがビルド・デプロイするようworkflowを設定
+  - デプロイ時にdocker fileでイメージをビルドし、指定設定でNginxコンテナを作成・実行
+  - Cloud flareでドメインを設定し、ネームサーバー経由でアクセス可能にした
+
+  ```yaml title="workflow.yaml"
+  name: Astro Blog
+  
+  on:
+    push:
+      branches:
+        - master # 배포를 트리거하는 브랜치
+  
+  jobs:
+    build:
+      runs-on: self-hosted
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+  
+        - uses: pnpm/action-setup@v4
+          name: Install pnpm
+          with:
+            version: 10
+            run_install: false
+  
+        - name: Install Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 22
+            cache: 'pnpm'
+  
+        - name: Install dependencies
+          run: pnpm install
+  
+        - name: Build
+          run: pnpm build
+    deploy:
+      runs-on: self-hosted
+      needs: build
+      steps:
+        - name: Build Docker Image
+          run: DOCKER_BUILDKIT=1 docker build -t astro-blog .
+  
+        - name: docker stop & remove pre
+          run: docker stop astro-blog && docker rm astro-blog
+  
+        - name: docker run
+          run: docker run -d -v astro-blog-volume:/home/files --name astro-blog -p 4321:80  astro-blog
+  
+  ```
+
+  ```docker title="Dockerfile"
+  FROM ubuntu/nginx:1.18-22.04_beta
+  
+  ENV TZ="Asia/Seoul"
+  
+  COPY ./nginx.conf /etc/nginx/nginx.conf
+  COPY ./dist /var/www/html
+  ```
+
+  ```txt title="nginx.conf"
+  worker_processes  1;
+  
+  events {
+    worker_connections  1024;
+  }
+  
+  http {
+    server {
+      listen 80;
+      server_name   _;
+  
+      root   /var/www/html;
+      index  index.html index.htm;
+      include /etc/nginx/mime.types;
+  
+      gzip on;
+      gzip_min_length 1000;
+      gzip_proxied expired no-cache no-store private auth;
+      gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+  
+      error_page 404 /404.html;
+      location = /404.html {
+              root /var/www/html;
+              internal;
+      }
+  
+      location / { # 
+              try_files $uri $uri/index.html =404;
+      }
+      location /files { # 파일 서버
+          alias /home/files;
+      }
+    }
+  }
+  
+  ```
+
+- docker volumeに画像を保存し、nginxで構成したファイルサーバーから読み込めるように設定
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_02.05.212x.webp" alt="gif2" />
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_02.06.36.webp" alt="gif2" />
+
+
+
+
+

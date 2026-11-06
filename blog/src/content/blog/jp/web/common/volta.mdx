@@ -1,0 +1,148 @@
+---  
+title: "Voltaについて"  
+created: 2023-01-25  
+updated: 2025-02-20  
+tags: [ 'node', 'npm', 'yarn', 'pnpm', 'volta', 'package-manager' ]  
+category: Web  
+thumbnail: /files/blog/web/common/assets/volta.webp  
+---  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<TableOfContents>  
+- 概要  
+- 基本的な使い方  
+  - インストール  
+  - プロジェクトで使うnodeのバージョンを指定する  
+  - 主なコマンド  
+- Intellijとの連携  
+- 使ってみた感想  
+  - 長所  
+  - 短所  
+</TableOfContents>  
+  
+<ImageLoader src="/files/blog/web/common/assets/volta.webp" alt="volta.png" />  
+  
+> ❓ Volta：nvmのようにNode.jsのバージョンを管理するためのcliツール  
+  
+## 概要  
+  
+プロジェクトごとに異なるNode.jsのバージョンを使うことがあり、以前はnvmで対応していた。  
+ただ、複数のプロジェクトを切り替えながら開発すると、使用するバージョンを頻繁に変更する必要があり、  
+その過程で間違えるなど、混乱することがよくあった。  
+  
+そこで、プロジェクトごとにnodeのバージョンを固定できないか調べていたところ、  
+nvmのようにnode.jsのバージョンを管理でき、package.jsonにnode.jsのバージョンを固定できるvoltaというツールを見つけた。  
+このツールの使い方と、使ってみた経験を紹介したい。  
+  
+## 基本的な使い方  
+  
+### インストール  
+  
+下のリンクを開き、ドキュメントに従えばよい。（とても簡単……。）  
+[https://docs.volta.sh/guide/getting-started](https://docs.volta.sh/guide/getting-started)  
+  
+- Unix (linux, mac-os)  
+  
+  ```bash title="terminal"  
+  curl https://get.volta.sh | bash  
+  ```  
+  - Unix系の環境で、インストールしても動かない場合。  
+  
+    私の場合は、使用中のシェルでvoltaが環境変数に登録されていなかったのが原因だった。  
+    シェルの設定ファイルの末尾に、次のスクリプトを追加すると解決した。  
+  
+      - bash：.bashrcに下のスクリプトを追加  
+      - zsh：.zshrcに下のスクリプトを追加  
+  
+    ```json title=".bashrc or .zshrc"  
+    export VOLTA_HOME="$HOME/.volta"  
+    export PATH="$VOLTA_HOME/bin:$PATH"  
+    ```  
+- Windows：上のリンクの`downlaod and run the windows installer`をクリックしてインストーラーをダウンロードし、実行する。  
+  
+### プロジェクトで使うnodeのバージョンを指定する  
+  
+package.jsonの末尾に、次のようにNodeとパッケージマネージャーのバージョンを書くと、そのプロジェクトに入ったとき自動でNodeのバージョンが切り替わる。  
+> 📌 使用するnodeのバージョンは正確に指定すること。  
+  
+```json title="packge.json"  
+{  
+  "name": "volta-test",  
+  "scripts": {  
+    ...  
+  },  
+  "dependencies": {  
+    ...  
+  },  
+  "devDependencies": {  
+    ...  
+  },  
+  "volta": {  
+    "node": "14.17.0",  
+    "npm": "7.19.1"  
+  }  
+}  
+```  
+  
+### 主なコマンド  
+  
+コマンドの詳細は下のリンクを参照。  
+[https://docs.volta.sh/reference/](https://docs.volta.sh/reference/)  
+  
+- volta install  
+  
+    - Node.jsまたはNodeのパッケージマネージャーをvoltaにインストールし、現在のcontextを切り替える。  
+    - すでにそのバージョンが入っていれば、現在のcontextだけを切り替える。  
+    - ex1) `volta install node@16.17`  
+    - ex2) `volta install yarn@1.22`  
+  
+- volta uninstall  
+    - voltaからNode.jsまたはNodeのパッケージマネージャーを削除する。  
+    - ex1) `volta uninstall node@16.17`  
+    - ex2) `volta uninstall yarn@1.22`  
+  
+- volta list  
+    - voltaにインストールされているnodeやパッケージマネージャーの情報を確認する。  
+      - ex) `volta list`：下の画像のように、現在有効なvoltaの情報を表示する。  
+        <ImageLoader src="/files/blog/web/common/assets/Untitled-9988248.webp" alt="Untitled" />  
+  
+      - ex) `volta list node`：下の画像のように、voltaに入っているNodeの情報を表示する。  
+        <ImageLoader src="/files/blog/web/common/assets/Untitled1-9988257.webp" alt="Untitled 1" />  
+  
+- volta pin  
+    - 現在のpackage.jsonに、nodeのバージョンを固定する設定を追加する。  
+    - ex) `volta pin node@16.17`  
+  
+## Intellijとの連携  
+普段はwebstormを使っているので、vscodeの説明は後日追加する予定。  
+  
+> 💡 Node interpreterとPackage managerを変更すると、スクリプトはvoltaに入っているnodeで実行される。voltaは実行前にpackage.jsonのnodeバージョンを確認し、そのバージョンでスクリプトを動かす。  
+  
+下の画像のようにintellijの設定を開き、  
+Languages & Framework > Node.jsでNode interpreterとPackage managerを変更する。  
+  
+- Node Interpreter：パスに.voltaが含まれるものへ変更する。  
+    - なければ…ボタンをクリックして追加する。  
+    - `volta which node`で、VoltaにインストールされたNode Pathを確認できる。  
+- Package manager：パスに.voltaが含まれるものへ変更する。  
+    - なければ…ボタンをクリックして追加する。  
+    - `volta which npm (yarn, pnpmも同様)`で、Voltaに入っているパッケージマネージャーのPathを確認できる。  
+      <ImageLoader src="/files/blog/web/common/assets/Untitled-9988452.webp" alt="Untitled" />  
+  
+## 使ってみた感想  
+先ほど書いたように、以前はbrewでnvmを入れて使っていたが、voltaを知ってからはnodeのバージョン管理をvoltaに一本化している。  
+個人プロジェクトなら最新バージョンを使えばよいが、会社のプロジェクトではどうしても古いバージョンを使わざるを得ない場合がある。  
+そんなとき、voltaでpackge.jsonにバージョンを固定しておけば、自動でnodeを切り替えてくれるので、気にする必要がない……。  
+### 長所  
+- インストールも使い方もとても簡単で、すぐに覚えられる。  
+- package.jsonにバージョンを固定できる機能がとても便利。  
+- nodeと各パッケージマネージャー（npm、yarn、pnpm）を、voltaでまとめて管理できる。  
+  
+### 短所  
+- コマンドが少し直感的ではない。  
+- パッケージマネージャーによっては、ライブラリーのglobalインストールでエラーが発生する（pnpm）。  
+  
+  
+  

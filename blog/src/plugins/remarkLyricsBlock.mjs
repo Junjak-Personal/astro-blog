@@ -24,6 +24,7 @@ function remarkLyricsBlock() {
         return;
 
       const filename = file?.path || file?.history?.[file.history.length - 1] || '';
+      const locale = filename.match(/[/\\]content[/\\](?:blog|project|playground)[/\\](ko|en|jp)[/\\]/)?.[1] ?? 'ko';
       if (filename && !filename.endsWith('.mdx')) {
         throw new Error(
           `[remarkLyricsBlock] \`\`\`lyrics blocks require .mdx (found in ${filename}). `
@@ -45,6 +46,11 @@ function remarkLyricsBlock() {
         type: 'mdxJsxFlowElement',
         name: 'Lyrics',
         attributes: [
+          {
+            type: 'mdxJsxAttribute',
+            name: 'locale',
+            value: locale,
+          },
           {
             type: 'mdxJsxAttribute',
             name: 'stanzas',

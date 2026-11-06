@@ -1,0 +1,131 @@
+---  
+title: Zorn - Video Player Test
+duration: 2025-03-30 ~ 2025-04-01
+techStacks: ['Astro']  
+thumbnail: /files/playground/zorn.webp
+description: Testing zorn, a Video Player designed for Astro.
+---  
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import ZornSubtitleTest from '@/components/Playground/ZornTest/ZornSubtitleTest.astro';
+import ZornYoutubeTest from '@/components/Playground/ZornTest/ZornYoutubeTest.astro';
+import { Zorn } from '@minpluto/zorn';
+import {Separator} from '@/components/ui/separator.tsx';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+
+## Overview
+- I found Zorn, a fairly polished VideoPlayer library in the Astro ecosystem, and decided to try it.
+
+
+## Tests
+### Basic test
+The error below occurs if the Settings option is not added.  
+`Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')`
+
+### YouTube
+Zorn uses Invidious to play YouTube videos,  
+but an error in that handling currently prevents YouTube playback.  
+I filed an issue about this and am waiting for a response...
+
+[Zorn issue link](https://ark.sudovanilla.org/MinPluto/Zorn/issues/3)
+
+<Separator/>
+
+The developer said to host and use my own Invidious instance.  
+I gave up because YouTube appears to be taking steps to block Invidious.  
+I will just embed YouTube with an iframe.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/HyzlYwjoXOQ?si=QLfSvkz-bcZYhxPD" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
+
+```astro title="ZornYoutubeTest.astro"
+---
+import { Zorn } from '@minpluto/zorn';
+---
+
+<Zorn
+  YouTube
+  Audio
+  WatchId="uBFTCK1EzM4"
+  YouTubeQuality="137"
+  Invidious="yewtu.be"
+  PlayerName="Junjak111"
+  ShowBackAndForward
+  ShowPlaybackRate
+  BigPlayButton
+  Settings={[]}
+/>
+```
+
+### Subtitles
+
+It is used in the same way as the track tag inside an HTML5 video element.   
+However, setting two or more subtitle languages seems to prevent the subtitle selection menu from loading...   
+Subtitles display correctly after a refresh but fail to appear after navigating to the page.  
+
+[track tag documentation](https://developer.mozilla.org/ko/docs/Web/HTML/Element/track)
+
+
+[Zorn issue link](https://ark.sudovanilla.org/MinPluto/Zorn/issues/4)
+
+<Separator/>
+
+A solution was provided in the issue.  
+It now works correctly.
+
+
+
+<ZornSubtitleTest />
+
+```astro title="ZornSubtitleTest.astro"
+---
+import { Zorn } from '@minpluto/zorn';
+---
+
+<Zorn
+  PlayerName="Junjak222"
+  Video="https://www.jun-devlog.win/files/blog/diary/japan-around-trip/assets/IMG_3043.MOV"
+  Subtitles
+  ShowBackAndForward
+  ShowPlaybackRate
+  BigPlayButton
+  Settings={[
+    {
+      Type: 'Button',
+      Name: 'Subtitles',
+      Action: 'document.querySelector(\'#zorn-player-Junjak222 #zorn-menu-subtitles\').style.display = \'flex\'',
+    },
+  ]}
+>
+  <slot slot="subtitles">
+    <track
+      kind="subtitles"
+      src="/vtts/testsub.vtt"
+      label="Korean"
+      srclang="ko"
+    />
+    <track
+      kind="subtitles"
+      src="/vtts/testsub.vtt"
+      label="Japanese"
+      srclang="ja"
+    />
+  </slot>
+</Zorn>
+
+```
+
+
+
+## Assessment
+- Good design and quite a few features
+- But there seem to be quite a few bugs (including those mentioned above)
+- I am considering contributing bug fixes, but the repository is privately hosted rather than on GitHub, which makes leaving a contribution record difficult and leaves me hesitant.
+- For now, the blog’s VideoLoader does not need complex features, so I replaced the existing HTML video tag with zorn.
+
+## References
+
+[Zorn ](https://zorn.docs.sudovanilla.org/introduction/)

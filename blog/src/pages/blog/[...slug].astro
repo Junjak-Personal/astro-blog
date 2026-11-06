@@ -1,11 +1,13 @@
 ---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import dayjs from 'dayjs';
 import MermaidInit from '@/components/layouts/MermaidInit.astro';
 import MdLayout from '@/layouts/mdLayout.astro';
-import { type CollectionEntry, getCollection, render } from 'astro:content';
-import dayjs from 'dayjs';
+import { getLocalizedCollection } from '@/utils/localizedContent';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = await getLocalizedCollection('blog', 'ko');
   posts.sort((a, b) => dayjs(b.data.created).unix() - dayjs(a.data.created).unix());
 
   return posts.map((post, index) => ({

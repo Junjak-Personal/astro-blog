@@ -1,20 +1,20 @@
 ---
-import { getCollection } from 'astro:content';
 import dayjs from 'dayjs';
 import Articles from '@/components/Blog/Articles';
 // Component Imports
 import { Skeleton } from '@/components/ui/skeleton';
 import { createTranslator, getLocaleFromUrl } from '@/i18n';
-
 import BaseLayout from '@/layouts/baseLayout.astro';
 
-const posts = await getCollection('blog');
+import { getLocalizedCollection } from '@/utils/localizedContent';
+
+const locale = getLocaleFromUrl(Astro.url);
+const posts = await getLocalizedCollection('blog', locale);
 posts.sort((a, b) => dayjs(b.data.created).unix() - dayjs(a.data.created).unix());
 
 const categories = [...new Set(posts.map((p) => p.data.category))];
 const postsForClient = posts.map(({ body, ...rest }) => rest);
 const allTags = [...new Set(posts.flatMap((p) => p.data.tags || []))];
-const locale = getLocaleFromUrl(Astro.url);
 const t = createTranslator(locale);
 const description = t('site.blog_description', 'Articles on web development, game development, and developer diary');
 ---

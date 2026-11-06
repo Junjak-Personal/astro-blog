@@ -1,0 +1,195 @@
+---  
+title: Applying a custom cursor to the OS and Browser  
+created: 2026-02-21  
+tags: ['blog', 'astro', 'cursor', 'claude cowork', 'claude code']  
+category: Web  
+thumbnail: /files/blog/web/astro/assets/cursor-main.webp  
+---  
+  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<ImageLoader src="/files/blog/web/astro/assets/cursor-main.webp" alt="cursor-main" />  
+  
+<TableOfContents>  
+- Getting Started  
+- Applying It to My Personal Blog  
+- Applying It on Mac OS  
+</TableOfContents>  
+  
+## Getting Started  
+  
+While looking through React Bits for components I could use on the blog, I found an animated cursor.  
+I wanted something a little more appealing than the default, so I looked for other nice cursors and found these two pages.  
+  
+1. [ebiebibeam](https://ko-fi.com/ebiebibeam/shop)'s cursor shop — I found it while looking for Frieren cursors.  
+2. [_BLZ_](https://ko-fi.com/blz_404/shop)'s cursor shop — my older sister introduced me to it.  
+  
+The first option looked lovely too, but the second had more animation frames, so I went with that one.  
+  
+## Applying It to My Personal Blog  
+I initially used ebiebibeam's Frieren cursor, then switched to _BLZ_'s Pelica cursor because it had more movement.  
+Asking Claude Code to apply the cursor in the browser worked well.  
+With Astro, though, a casual implementation that treats it like a regular spa can cause hydration issues and make route changes very slow,  
+so you need to point that out when asking Claude Code to implement it.  
+  
+Here is how it looks in the browser.  
+  
+<ImageLoader src="/files/blog/web/astro/assets/cursor-apply-blog.webp" alt="cursor-apply-blog" />  
+  
+Here is the code I used.  
+  
+```astro title="PelicaCursor.astro"  
+---  
+/**  
+ * Global Pelica pixel-art cursor.  
+ * Pure vanilla JS — zero framework, zero hydration.  
+ * Persists across View Transitions via transition:persist.  
+ *  
+ * States: normal | link | text | loading  
+ */  
+---  
+  
+<div id="pelica-cursor" transition:persist="pelica-cursor">  
+  <div class="pelica-sprite" data-cursor="normal"></div>  
+  <div class="pelica-sprite" data-cursor="link"></div>  
+  <div class="pelica-sprite" data-cursor="text"></div>  
+  <div class="pelica-sprite" data-cursor="loading"></div>  
+</div>  
+  
+<style>  
+  #pelica-cursor {  
+    pointer-events: none;  
+    position: fixed;  
+    z-index: 9999;  
+    opacity: 0;  
+    transition: opacity 0.15s ease-out;  
+  }  
+  #pelica-cursor.active {  
+    opacity: 1;  
+  }  
+  .pelica-sprite {  
+    width: 32px;  
+    height: 32px;  
+    image-rendering: pixelated;  
+    background-size: calc(32px * 12) 32px;  
+    animation: pelica-anim 3s steps(12) infinite;  
+    display: none;  
+  }  
+  [data-cursor="normal"]  { background-image: url('/cursors/pelica-normal.png'); }  
+  [data-cursor="link"]    { background-image: url('/cursors/pelica-link.png'); }  
+  [data-cursor="text"]    { background-image: url('/cursors/pelica-text.png'); }  
+  [data-cursor="loading"] { background-image: url('/cursors/pelica-loading.png'); }  
+  
+  @keyframes pelica-anim {  
+    from { background-position: 0 0; }  
+    to { background-position: -768px 0; }  
+  }  
+</style>  
+  
+<style is:global>  
+  @media (pointer: fine) {  
+    *, *::before, *::after {  
+      cursor: none !important;  
+    }  
+  }  
+</style>  
+  
+<script>  
+import { isMobileUA } from '@/utils/device';  
+  
+if (!isMobileUA()) {  
+  let el = document.getElementById('pelica-cursor')!;  
+  let sprites = Object.fromEntries(  
+    Array.from(el.querySelectorAll<HTMLElement>('.pelica-sprite')).map(  
+      (s) => [s.dataset.cursor!, s],  
+    ),  
+  );  
+  
+  const LINK_SEL = 'a, button, [role="button"], [tabindex]';  
+  const TEXT_SEL = 'input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="password"], input[type="number"], textarea, [contenteditable="true"]';  
+  
+  let currentState = 'normal';  
+  let isLoading = false;  
+  
+  function show(state: string) {  
+    if (state === currentState)  
+      return;  
+    sprites[currentState].style.display = 'none';  
+    currentState = state;  
+    sprites[currentState].style.display = 'block';  
+  }  
+  
+  sprites.normal.style.display = 'block';  
+  
+  function detectState(target: Element): string {  
+    if (isLoading)  
+      return 'loading';  
+    if (target.closest(TEXT_SEL))  
+      return 'text';  
+    if (target.closest(LINK_SEL))  
+      return 'link';  
+    return 'normal';  
+  }  
+  
+  document.addEventListener('astro:after-swap', () => {  
+    const next = document.getElementById('pelica-cursor');  
+    if (next && next !== el) {  
+      el = next;  
+      sprites = Object.fromEntries(  
+        Array.from(el.querySelectorAll<HTMLElement>('.pelica-sprite')).map(  
+          (s) => [s.dataset.cursor!, s],  
+        ),  
+      );  
+      sprites[currentState].style.display = 'block';  
+    }  
+  });  
+  
+  document.addEventListener('astro:before-preparation', () => {  
+    isLoading = true;  
+    show('loading');  
+  });  
+  document.addEventListener('astro:after-swap', () => {  
+    isLoading = false;  
+  });  
+  
+  document.addEventListener('mousemove', (e: MouseEvent) => {  
+    el.style.left = `${e.clientX}px`;  
+    el.style.top = `${e.clientY}px`;  
+    el.classList.add('active');  
+    show(detectState(e.target as Element));  
+  });  
+  
+  document.addEventListener('mouseleave', () => {  
+    el.classList.remove('active');  
+  });  
+  
+  document.addEventListener('mouseenter', (e: MouseEvent) => {  
+    el.style.left = `${e.clientX}px`;  
+    el.style.top = `${e.clientY}px`;  
+  
+    el.classList.add('active');  
+  });  
+}  
+</script>  
+```  
+  
+  
+## Applying It on Mac OS  
+After adding it to the blog, I wanted to use it on the OS too.  
+The cursor downloads from those pages came with instructions, but they were for Windows. For Mac os, I had to follow a youtube video link.  
+I could not be bothered, so I asked claude cowork to do it. It told me to use an [old version of mousecape](https://github.com/alexzielenski/Mousecape/releases), which did not work properly.  
+  
+In the end, I searched for it myself and installed a version of [mousecape](https://github.com/AdamWawrzynkowskiGF/Mousecape-TahoeSupport) that supports Mac os 26 tahoe.  
+The cursor files are .ani files for windows, so using them on mac requires converting them to the .cape format used by mousecape.  
+Claude handled that conversion well, and I was able to apply the cursor.  
+  
+Here is an image of the result.  
+  
+<ImageLoader src="/files/blog/web/astro/assets/cursor-apply-os.webp" alt="cursor-apply-os" />  
+  
+  
+  
+  
+  
+  

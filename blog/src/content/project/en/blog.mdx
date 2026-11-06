@@ -1,0 +1,394 @@
+---  
+title: Personal Blog
+duration: 2025-02-10 ~ current
+techStacks: ['typescript', 'react', 'astro', 'tailwindcss', 'framermotion', 'githubactions', 'docker', 'nginx']  
+thumbnail: /files/project/blog/CleanShot_2025-03-06_02.12.32@2x.webp
+description: A personal blog built with Astro.<br/>It introduces me, projects I have worked on, and blog posts I write when I have time.<br/>Blog, Project, and Playground use Astro’s Content Api, and posts are written as .mdx files so components can be embedded.
+---  
+
+import { ProjectCarousel } from '@/components/Project/ProjectCarousel';
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import ImageLoader from '@/components/Blog/ImageLoader.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## Description
+A personal blog built with Astro.  
+It introduces me, projects I have worked on, and blog posts I write when I have time.  
+Blog, Project, and Playground use Astro’s Content Api, and posts are written as .mdx files so components can be embedded.
+## Project screenshots
+<ProjectCarousel images={[
+  '/files/project/blog/CleanShot_2025-03-06_02.12.32@2x.webp', 
+  '/files/project/blog/CleanShot_2025-03-06_15.21.49@2x.webp',
+  '/files/project/blog/CleanShot_2025-03-06_15.22.25@2x.webp',
+  '/files/project/blog/CleanShot_2025-03-06_15.22.34@2x.webp', 
+  '/files/project/blog/CleanShot_2025-03-06_15.22.49@2x.webp']} client:visible />
+
+### Site links
+- [Personal blog](https://www.jun-devlog.win/)
+- [Github](https://github.com/JunjaK/astro-blog)
+## Tech stack
+- Astro: SSG framework
+- React: Main components
+- TailwindCSS: Styling
+- Framer Motion: Animation
+- Github Actions: Automated deployment
+- Docker: Container image builds
+- Nginx: Web server
+- Cloudflare: Domain management
+
+## Development process
+### Choosing technologies
+- Astro
+    - It attracted attention as a meta-framework, taking first place in interest, awareness, and positive sentiment in state of js 2024.
+    - I wanted to build a personal blog with Astro, which led to this project.
+    - For a detailed assessment of Astro, see the blog post.  
+      [Astro framework assessment](https://www.jun-devlog.win/blog/web/astro/astro)
+- React
+    - I wanted to become more familiar with React, which continues to enjoy overwhelming support.
+    - I wanted to try Shadcn UI, a React-based CSS Library that has recently become very popular.
+
+### UI structure
+
+- I wanted animations and dynamic effects, so I combined Motion and TailwindCSS to implement them.  
+
+<table>
+  <tr>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.29.06.webp" alt="gif1" />
+    </td>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.30.20.webp" alt="gif2" />
+    </td>
+  </tr>
+</table>
+
+- Developed a responsive UI and Dark/Light modes for the user experience
+
+<table>
+  <tr>
+    <th style="width: 50%;">PC screen</th>
+    <th style="width: 50%;">Mobile screen</th>
+  </tr>
+  <tr>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.24.532x.webp" alt="gif1" />
+    </td>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.25.332x.webp" alt="gif2" />
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th style="width: 50%;">Dark mode</th>
+    <th style="width: 50%;">Light mode</th>
+  </tr>
+  <tr>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.27.292x.webp" alt="gif1" />
+    </td>
+    <td>
+      <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.27.402x.webp" alt="gif2" />
+    </td>
+  </tr>
+</table>
+
+### Building the blog pages
+- Using Astro’s Content API
+  - I wanted to write blog posts in Markdown, so I used Astro’s Content API.
+
+  ```tsx
+  /**
+   * 파일 경로: ./src/content/config.ts
+   * 역할 설명: mdx의 frontmatter에 적혀있는 속성을 스키마로 가지는 콜렉션 지정
+   */ 
+  import { defineCollection, z } from 'astro:content';
+  
+  const blog = defineCollection({
+    type: 'content',
+    schema: z.object({
+      title: z.string(),
+      category: z.string(),
+      thumbnail: z.string().optional(),
+      created: z.coerce.date(),
+      tags: z.array(z.string()).optional(),
+      updated: z.coerce.date().optional(),
+    }),
+  });
+  
+  export const collections = { blog };
+  ```
+
+  ```tsx
+  /**
+   * 파일 경로: ./pages/blog/[...slug].astro
+   * 역할 설명: post slug 경로와 일치하는 mdx를 렌더링하는 동적 페이지 생성
+   */ 
+  ---
+  import { type CollectionEntry, getCollection } from 'astro:content';
+  
+  export async function getStaticPaths() {
+    const posts = await getCollection('blog');
+    return posts.map((post, index) => ({
+      params: { slug: post.slug },
+      props: {
+        post,
+        prev: posts[index - 1] || null,
+        next: posts[index + 1] || null,
+      },
+    }));
+  }
+  
+  const { post, prev, next } = Astro.props;
+  const { Content } = await post.render();
+  ---
+  
+  <MdLayout post={post.data} nav={{ prev, next }} url={`/blog/${post.slug}`}>
+    <Content />
+  </MdLayout>
+  
+  ```
+
+- Screen layout
+
+  <table>
+    <tr>
+      <th style="width: 50%;">Blog list screen</th>
+      <th style="width: 50%;">Blog post screen</th>
+    </tr>
+    <tr>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.44.392x.webp" alt="gif1" />
+      </td>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.45.382x.webp" alt="gif2" />
+      </td>
+    </tr>
+  </table>
+
+
+
+- Implemented fuzz search for posts
+  - Used fuse.js to make searching easier for readers.
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-29_22.46.142x.webp" alt="gif2" />
+
+
+- MDX processing for asset loaders and code views
+  - Added Expressive code, Mermaid, and Katex
+  - See the blog link for details. https://www.jun-devlog.win/blog/web/common/markdown-test-mdx
+
+  <table>
+    <tr>
+      <th style="width: 33.3%;">Expressive code</th>
+      <th style="width: 33.3%;">Mermaid</th>
+      <th style="width: 33.3%;">Katex</th>
+    </tr>
+    <tr>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.35.252x.webp" alt="gif2" />
+      </td>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.36.042x.webp" alt="gif2" />
+      </td>
+      <td>
+        <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.35.462x.webp" alt="gif2" />
+      </td>
+    </tr>
+  </table>
+
+  - Developed ImageLoader with lazy image loading
+
+    ```tsx
+    // 이미지 로더
+    ---
+    import { getBasePathWithUrl } from '@/utils/getBasePathWithUrl.ts';
+    import React from 'react';
+    
+    type Props = {
+      src?: string;
+      alt?: string;
+      class?: string;
+      width?: number;
+      height?: number;
+    };
+    
+    const { src, alt = 'blog-image', class: className, width, height } = Astro.props;
+    ---
+    
+    <img
+      src={getBasePathWithUrl(src)}
+      alt={alt ?? 'blog-image'}
+      loading="lazy"
+      onerror={`this.src='/fallbackImg.svg'`}
+      class={className}
+      width={width}
+      height={height}
+    />
+    
+    ```
+
+    ```tsx
+    // mdx 파일
+    ---  
+    title: Astro에 대해서  
+    created: 2025-02-26  
+    updated: 2025-02-27  
+    tags: ['blog', 'astro', 'meta-framework']  
+    category: Web  
+    thumbnail: /files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp  
+    ---  
+      
+    import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+    import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+    
+    <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp" alt="CleanShot_2025-02-26_20.22.28@2x" />  
+    
+    ## 시작으로  
+      
+    앞서 작성한 블로그 소개 글에서 언급했듯, 개발 블로그를 만들기 위하여 Astro를 사용해본 경험, 사용법에 대하여 기술하겠습니다.  
+    ...
+    ```
+
+- Added a JavaScript file to preprocess post data
+
+  - Preprocessing is needed because I first write posts in a Markdown editor and then add the content to the blog site.
+  - Developed a preprocessing plugin for image paths and other components, run before adding blog content.
+    - addMdEnter.js
+    - convertLoader.js
+    - removeUnusedImages.js
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.43.472x.webp" alt="gif2" />
+
+
+### Setting up a web server and automated deployment with Docker and Nginx
+
+> Identifying the problem and planning a solution
+
+- During initial development, I built and deployed the site on netlify.
+  - Problem: As photo assets increased, GitHub began warning that the size limit had been exceeded.
+  - Solution: Store blog assets on Amazon S3 or a personal file server.
+- I chose to create a personal file server on my own Linux server,
+  and decided to move the web server there as part of the configuration change.
+
+---
+
+> Web server and automated deployment setup
+
+- Installing the Github Action runner
+
+  - Installed a self-hosted runner on the Linux server by following GitHub’s guide.
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_01.50.542x.webp" alt="gif2" />
+
+- Configuring nginx, the docker file, and workflow
+
+  - Configured the workflow so the runner builds and deploys on pushes to the remote branch.
+  - At deployment, build a Docker image through the docker file, then create and run an Nginx container with the specified settings.
+  - Set up the domain through Cloud flare so it is accessible via the nameserver.
+
+  ```yaml title="workflow.yaml"
+  name: Astro Blog
+  
+  on:
+    push:
+      branches:
+        - master # 배포를 트리거하는 브랜치
+  
+  jobs:
+    build:
+      runs-on: self-hosted
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+  
+        - uses: pnpm/action-setup@v4
+          name: Install pnpm
+          with:
+            version: 10
+            run_install: false
+  
+        - name: Install Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 22
+            cache: 'pnpm'
+  
+        - name: Install dependencies
+          run: pnpm install
+  
+        - name: Build
+          run: pnpm build
+    deploy:
+      runs-on: self-hosted
+      needs: build
+      steps:
+        - name: Build Docker Image
+          run: DOCKER_BUILDKIT=1 docker build -t astro-blog .
+  
+        - name: docker stop & remove pre
+          run: docker stop astro-blog && docker rm astro-blog
+  
+        - name: docker run
+          run: docker run -d -v astro-blog-volume:/home/files --name astro-blog -p 4321:80  astro-blog
+  
+  ```
+
+  ```docker title="Dockerfile"
+  FROM ubuntu/nginx:1.18-22.04_beta
+  
+  ENV TZ="Asia/Seoul"
+  
+  COPY ./nginx.conf /etc/nginx/nginx.conf
+  COPY ./dist /var/www/html
+  ```
+
+  ```txt title="nginx.conf"
+  worker_processes  1;
+  
+  events {
+    worker_connections  1024;
+  }
+  
+  http {
+    server {
+      listen 80;
+      server_name   _;
+  
+      root   /var/www/html;
+      index  index.html index.htm;
+      include /etc/nginx/mime.types;
+  
+      gzip on;
+      gzip_min_length 1000;
+      gzip_proxied expired no-cache no-store private auth;
+      gzip_types text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+  
+      error_page 404 /404.html;
+      location = /404.html {
+              root /var/www/html;
+              internal;
+      }
+  
+      location / { # 
+              try_files $uri $uri/index.html =404;
+      }
+      location /files { # 파일 서버
+          alias /home/files;
+      }
+    }
+  }
+  
+  ```
+
+- Store images in a docker volume so the nginx file server can load them
+
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_02.05.212x.webp" alt="gif2" />
+  <ImageLoader src="/files/project/blog/CleanShot_2025-03-30_02.06.36.webp" alt="gif2" />
+
+
+
+
+

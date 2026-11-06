@@ -1,0 +1,41 @@
+---  
+title: Yosul
+duration: 2024-05-24 ~ 2025-07-23
+techStacks: ['typescript', 'react', 'nextdotjs', 'tailwindcss', 'antdesign', 'githubactions', 'nginx', 'pm2', 'graphql']  
+thumbnail: /files/project/yosul/CleanShot_2025-03-06_17.24.18@2x.webp
+description: 国内に本格的なお酒のレビューコミュニティがなかったため、自分たちで作ろうと始めたプロジェクトです。<br/>メンバーは全員、現職または元会社員で、サイドプロジェクトとして開発しています。<br/>お酒のレビューをより詳しく書ける点が特徴です。
+---  
+
+import { ProjectCarousel } from '@/components/Project/ProjectCarousel';
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## 説明
+国内に本格的なお酒のレビューコミュニティがなかったため、自分たちで作ろうと始めたプロジェクトです。  
+メンバーは全員、現職または元会社員で、サイドプロジェクトとして開発しています。  
+より詳しいお酒のレビューを書けることと、ユーザーがお酒の情報を自由に追加できるお酒のWiki（現在開発中...）が特徴です。  
+フロントエンド開発とマークアップを担当し、現在開発を進めています。   
+---
+チームが解散したため、プロジェクトは終了しました...
+
+## プロジェクトの画面
+<ProjectCarousel images={[
+  '/files/project/yosul/CleanShot_2025-03-06_17.24.18@2x.webp', 
+  '/files/project/yosul/CleanShot_2025-03-06_17.27.32@2x.webp', 
+  '/files/project/yosul/CleanShot_2025-03-06_17.27.52@2x.webp'
+  ]} client:visible />
+
+### サイトリンク
+- [Yosul](https://yosul.site/)
+
+## 技術スタック
+- Next.js: フロントエンドフレームワーク
+- Tailwind CSS: スタイリング
+- Ant Design Mobile: 一部のUIコンポーネント
+- Daisy UI: 一部のUIコンポーネント
+- GraphQL: データ通信
+- Nginx: サーバー
+- PM2: サーバー管理
+- Github Actions: デプロイの自動化
+

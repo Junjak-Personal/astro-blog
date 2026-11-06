@@ -1,0 +1,602 @@
+---  
+title: "About Astro"  
+created: 2025-02-26  
+updated: 2025-02-27  
+tags: ['blog', 'astro', 'meta-framework']  
+category: Web  
+thumbnail: /files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp  
+---  
+  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<TableOfContents>  
+- Introduction  
+- Features  
+  - Server Driven  
+  - Island  
+- How to Use Astro  
+  - An Introduction to Astro Syntax  
+    - Component Template  
+  - Building Layouts  
+  - Creating Pages  
+    - Dynamic Routes  
+- Advantages of Astro  
+  - Clear Documentation and Translations  
+  - Straightforward SSG and SSR  
+  - Combining Different Frameworks  
+- Disadvantages of Astro  
+  - Restrictions on Astro Components and Client Islands  
+  - A Smaller User Base  
+  - Restrictions on Programmatic Navigation  
+</TableOfContents>  
+  
+  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_20.22.28@2x.webp" alt="CleanShot_2025-02-26_20.22.28@2x" />  
+  
+## Introduction  
+  
+As I mentioned in my earlier introduction to this blog, I will describe my experience using Astro to build a development blog and explain how to use it.  
+  
+Like Nuxt in the Vue ecosystem or Next in the React ecosystem, Astro focuses on SSR and SSG.  
+It is a meta-framework designed for content-focused websites such as blogs and marketing sites,  
+and, as its [official website](https://docs.astro.build/ko/concepts/why-astro/) explains, it suits sites that need SEO and fast loading times.  
+(Unlike Nuxt and Next, it cannot run as an SPA.)  
+  
+The following is a summary and explanation of the Astro Docs. For more detail, please refer to the [official Astro Docs](https://docs.astro.build/ko/getting-started/).  
+  
+## Features  
+  
+The following features distinguish Astro from other meta-frameworks.  
+  
+1. Server Driven: a focus on SSG, with some SSR as needed  
+2. Island: an island architecture separating static elements, the server, and the client  
+  
+### Server Driven  
+  
+Astro is designed around SSG to display content quickly and uses server rendering wherever possible to reduce TTI(Time to Interactive) for visitors.  
+More specifically, Astro initially renders every UI component as HTML and CSS with Javascript removed,  
+then adds server-rendered server islands and client islands that become active after Hydration to complete the website.  
+  
+These characteristics give websites built with Astro an advantage in performance and user experience.  
+Although the results are from March 2023, the Astro team benchmarked the major meta-frameworks,  
+and Astro came out ahead overall.  
+[Benchmark](https://astro.build/blog/2023-web-framework-performance-report/)  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_22.02.57.webp" alt="CleanShot_2025-02-26_22.02.57" />  
+  
+### Island  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_20.47.22@2x.webp" alt="CleanShot_2025-02-26_20.47.22@2x" />  
+  
+This is the island architecture described by Astro.  
+  
+> Island architecture works by rendering most of a page as fast, static HTML, then adding smaller “islands” of JavaScript where interaction or personalization is needed, such as an image carousel.  
+  
+Server islands and client islands have the following characteristics.  
+  
+- Server islands  
+  - These are ordinary server-rendered [Astro components](https://docs.astro.build/ko/basics/astro-components/) instructed to defer rendering until their content is available.  
+  - Server islands must use .astro files. Adding `server:defer` to a component makes it a server island.  
+    ```astro  title="server.astro"  
+    ---  
+    import Avatar from '../components/Avatar.astro';  
+    ---  
+    <Avatar server:defer />  
+    ```  
+  - Fallback content can be provided while server rendering is deferred.  
+  - For more details, see [Astro server islands](https://docs.astro.build/ko/guides/server-islands/).  
+  
+- Client islands  
+  - These are the interactive islands in the image above: the parts that work dynamically once their JavaScript has been hydrated.  
+  - Components used as client islands can be built with various frontend frameworks, including React, Vue, and Svelte.  
+  - The `client:*` directive tells a component to behave as a client island.  
+    - In other words, without a `client:*` directive, JavaScript does not run; only html and css are rendered.  
+    - This is similar to Next.js's 'use client' syntax.  
+      ```tsx title="Counter.tsx"  
+      // React의 useState 훅을 사용한 간단한 카운터 컴포넌트  
+      import { useState } from 'react';  
+      import './Counter.css';  
+  
+      interface CounterProps {  
+        children: JSX.Element;  
+        count: number;  
+      }  
+  
+      export default function Counter({ children, count: initialCount }: CounterProps) {  
+        const [count, setCount] = useState(initialCount);  
+        const add = () => setCount((i) => i + 1);  
+        const subtract = () => setCount((i) => i - 1);  
+  
+        return (  
+          <>  
+            <div className="counter">  
+              <button onClick={subtract}>-</button>  
+              <pre>{count}</pre>  
+              <button onClick={add}>+</button>  
+            </div>  
+            <div className="counter-message">{children}</div>  
+          </>  
+        );  
+      }  
+      ```  
+  
+      ```astro title="Playground.astro"  
+      ---  
+      import Counter from '@/components/Counter';  
+      import BaseLayout from '../layouts/baseLayout.astro';  
+  
+      const someProps = {  
+        count: 0,  
+      };  
+      ---  
+  
+      <BaseLayout title="playground">  
+        <div class="container">  
+          <h1>Playground</h1>  
+          <hr class="title-divider" />  
+          <br />  
+          <section>  
+            <Counter {...someProps} client:visible> // React 컴포넌트를 사용할 때, client 지시어를 붙이지 않는 경우에는 클릭 이벤트가 동작하지 않음.  
+              <h1>Hello, React!</h1>  
+            </Counter>  
+          </section>  
+          <section>  
+          </section>  
+        </div>  
+      </BaseLayout>  
+      ```  
+      - With the client directive: JavaScript runs, so the display changes when you click.  
+      <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.12.22.webp" alt="CleanShot_2025-02-26_21.12.22" />  
+      - Without it: the UI is rendered, but clicking does nothing.  
+      <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.10.56.webp" alt="CleanShot_2025-02-26_21.10.56" />  
+      - Astro's template directives, including client directives, are listed in [this reference](https://docs.astro.build/ko/reference/directives-reference/#%ED%81%B4%EB%9D%BC%EC%9D%B4%EC%96%B8%ED%8A%B8-%EC%A7%80%EC%8B%9C%EC%96%B4).  
+  
+  
+  
+  
+  
+## How to Use Astro  
+  
+You can set up an Astro project with the command below.  
+  
+```shell  
+npm create astro@latest  
+```  
+  
+See the [official documentation](https://docs.astro.build/ko/basics/project-structure/) for the generated folder structure and an explanation of it.  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-27_21.56.24@2x.webp" alt="CleanShot_2025-02-27_21.56.24@2x" />  
+  
+Various editors, including vscode and webstorm, support .astro syntax, so choose whichever suits you.  
+webstorm support began in version 2024.2, so it is still fairly recent.  
+  
+> In webstorm, using two or more script blocks in an Astro component can break syntax highlighting.  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-27_22.15.58.webp" alt="CleanShot_2025-02-27_22.15.58" />  
+  
+### An Introduction to Astro Syntax  
+  
+An Astro component is divided into a component script and a component template, with the following roles.  
+  
+```astro title="Astro 컴포넌트 구조"  
+---  
+// Component Script (JS / TS)  
+---  
+{/* Component Template (HTML, JS/TS 표현식) */}  
+<head>  
+</head>  
+<body>  
+  
+</body>  
+  
+<style>  
+</style>  
+  
+<script>  
+</script>  
+```  
+  
+- Component Script  
+  - Importing other components (.astro, .tsx, .vue, etc.)  
+  - Creating variables referenced by the template  
+  - Fetching data from other files or APIs  
+- Component Template  
+  - Writing the HTML template  
+  - Writing script and style tags  
+  
+> Note that the component script runs Server Side, so objects such as window and document are unavailable.  
+  
+#### Component Template  
+  
+The component template syntax felt like a selection of the best parts of vue and jsx.  
+  
+- Put variables and js expressions inside `{}`  
+- Conditions: `{test ? (<div>a</div>) :  (<div>b</div>)}`  
+- Loops: `{test.map((item) => <div>{item}</div>)}`  
+- The same slot syntax as vue  
+  
+```astro title="ExamplePage.astro"  
+---  
+// 여기에 컴포넌트 스크립트를 작성합니다!  
+import Banner from '../components/Banner.astro';  
+import Avatar from '../components/Avatar.astro';  
+import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';  
+const myFavoritePokemon = [/* ... */];  
+const { title } = Astro.props;  
+---  
+<!-- HTML 주석을 지원합니다! -->  
+{/* JS 주석 구문도 유효합니다! */}  
+  
+<Banner />  
+<h1>Hello, world!</h1>  
+  
+<!-- 컴포넌트 스크립트의 props 및 기타 변수 사용 -->  
+<p>{title}</p>  
+  
+<!-- 컴포넌트 렌더링을 지연시키고 대체 로딩 콘텐츠 제공 -->  
+<Avatar server:defer>  
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>  
+</Avatar>  
+  
+<!-- `client:` 지시어를 사용하여 다른 UI 프레임워크 컴포넌트를 포함하고 하이드레이션합니다. -->  
+<ReactPokemonComponent client:visible />  
+  
+<!-- JSX와 유사하게 HTML과 JavaScript 표현식을 혼합합니다. -->  
+<ul>  
+  {myFavoritePokemon.map((data) => <li>{data.name}</li>)}  
+</ul>  
+  
+<!-- 템플릿 지시어를 사용하여 여러 문자열 또는 객체에서 클래스 이름을 빌드합니다! -->  
+<p class:list={["add", "dynamic", { classNames: true }]} />  
+```  
+  
+There are also [additional directives](https://docs.astro.build/ko/reference/directives-reference/).  
+  
+- `client:*`  
+- `server:*`  
+- `is:*`  
+  
+For more detail, see the [official documentation](https://docs.astro.build/ko/basics/astro-components/).  
+  
+### Building Layouts  
+  
+Layouts can be built much as they are in other frontend frameworks, as shown below.  
+(The structure is similar to next.js.)  
+  
+Astro components use the `<slot/>` structure familiar from Vue to insert their child content.  
+  
+Unlike pages, layouts can also be built in other frameworks such as react,  
+but using Astro components is recommended so you can use Astro's APIs and maintain site performance.  
+  
+```astro title="ExampleLayout.astro"  
+---  
+import BaseHead from '../components/BaseHead.astro';  
+import Footer from '../components/Footer.astro';  
+const { title } = Astro.props;  
+---  
+<html lang="ko">  
+  <head>  
+    <meta charset="utf-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1">  
+    <BaseHead title={title}/>  
+  </head>  
+  <body>  
+    <nav>  
+      <a href="#">홈</a>  
+      <a href="#">블로그</a>  
+      <a href="#">연락처</a>  
+    </nav>  
+    <h1>{title}</h1>  
+    <article>  
+      <slot /> <!-- 콘텐츠가 여기에 삽입됩니다. -->  
+    </article>  
+    <Footer />  
+  </body>  
+  <style>  
+    h1 {  
+      font-size: 2rem;  
+    }  
+  </style>  
+</html>  
+```  
+  
+Import the layout into each page where you want to use it, then wrap the page content with it.  
+In the page example below, the title passed to MySiteLayout as props  
+is received by `const { title } = Astro.props;` in the layout example above, making the value available there.  
+  
+```astro title="useLayoutPageExample.astro"  
+---  
+import ExampleLayout from '../layouts/ExampleLayout.astro';  
+---  
+<ExampleLayout title="Home Page">  
+  <p>레이아웃으로 감싼 페이지입니다!</p>  
+</ExampleLayout>  
+```  
+  
+Layouts can also be specified for pages generated from Markdown. I plan to cover that in the next post.  
+For details, refer to [this documentation](https://docs.astro.build/ko/basics/layouts/).  
+  
+### Creating Pages  
+  
+Pages are created by placing Astro components in the `./src/pages` folder, following Astro's folder structure.  
+As with other meta-frameworks, routes are generated from the file structure.  
+  
+>Note: pages must be built as Astro components.  
+  
+Build pages by making use of the component script and component template described in the syntax section above.  
+The example below is the Astro component used for this blog's home screen.  
+  
+```astro title="index.astro"  
+---  
+import Flickering from '@/components/home/Flickering';  
+import InteractiveIconCloud from '@/components/home/InteractiveIconCloud';  
+import Intro from '@/components/home/Intro';  
+import TerminalInfo from '@/components/home/TerminalInfo';  
+import GradualSpacing from '@/components/ui/gradual-spacing';  
+import LetterPullup from '@/components/ui/letter-pullup';  
+  
+import { Separator } from '@/components/ui/separator';  
+import BaseLayout from '@/layouts/baseLayout.astro';  
+  
+  
+// Full Astro Component Syntax:  
+// https://docs.astro.build/basics/astro-components/  
+---  
+  
+<BaseLayout title="Home">  
+  <div class="container overflow-x-hidden">  
+    <div class="mt-[20rem] max-md:mt-[10rem]"></div>  
+    <div class="flex justify-center ">  
+      <TerminalInfo client:visible />  
+    </div>  
+    <Flickering client:visible />  
+    <div id="intro">  
+      <div class="flex justify-center mt-[-21rem]">  
+        <div class="intro-wrapper">  
+          <LetterPullup  
+            className="max-sm:text-2xl dark:text-slate-200 text-slate-700 "  
+            words="Hello World! I'm Junja"  
+            delay={0.05}  
+            client:visible  
+          />  
+          <Intro client:visible />  
+        </div>  
+      </div>  
+      <div class="on-spacer"></div>  
+      <Separator className="my-8" />  
+        <GradualSpacing  
+          className="font-display text-center text-4xl max-sm:text-2xl font-extrabold dark:text-slate-200 text-slate-700"  
+          text="Technologies I've worked"  
+          client:visible  
+        />  
+      <div class="flex justify-center">  
+  
+        <InteractiveIconCloud client:visible />  
+      </div>  
+    </div>  
+  
+  
+  
+  </div>  
+  
+</BaseLayout>  
+  
+<script is:inline>  
+  setTimeout(() => {  
+    if (document.getElementById('intro'))  
+      document.getElementById('intro').classList.add('visible');  
+    if (document.querySelector('.scroll-animation') && document.querySelector('.container')) {  
+      if (window.innerHeight < (document.querySelector('.container').offsetHeight + 224)) {  
+        document.querySelector('.scroll-animation').classList.remove('hidden');  
+      }  
+    }  
+  }, 4000);  
+</script>  
+  
+```  
+  
+#### Dynamic Routes  
+  
+Dynamic routes in Astro can use a structure such as `./src/pages/[slug].astro`,  
+but because the site is SSG-based, the corresponding files must exist or be generated.  
+  
+You therefore need to declare a getStaticPaths function when using dynamic routes.  
+  
+```astro title="src/pages/[slug].astro"  
+---  
+export function getStaticPaths() {  
+  return [  
+    {params: {slug: 'clifford'}},  
+    {params: {slug: 'rover'}},  
+    {params: {slug: 'spot'}},  
+  ];  
+}  
+  
+const { slug } = Astro.params;  
+---  
+<div>Good slug, {slug}!</div>  
+```  
+  
+Astro uses this function to generate routes dynamically and create html files when it runs or builds.  
+Because of this, Astro is not well suited to sites such as community platforms where many pages are created dynamically.  
+  
+For more detail, see [this documentation](https://docs.astro.build/ko/guides/routing/#%EB%8F%99%EC%A0%81-%EA%B2%BD%EB%A1%9C).  
+  
+---  
+  
+  
+  
+## Advantages of Astro  
+  
+Here are the advantages of Astro as I see them.  
+  
+### Clear Documentation and Translations  
+  
+There are even developer surveys showing that the clarity and quality of documentation influence technology choices.  
+From a library user's perspective, I think the UI/UX of official documentation matters a great deal.  
+  
+In that respect, Astro offers friendly tutorials, polished and uncluttered documentation, and high-quality translations.  
+The documentation is so thorough that you rarely need to look elsewhere when working with Astro.  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.32.44@2x.webp" alt="CleanShot_2025-02-26_21.32.44@2x" />  
+  
+### Straightforward SSG and SSR  
+  
+Astro is based on SSR by default, so there is nothing extra to configure for it.  
+You only need to pay attention to the client islands that require JavaScript, and even those are easy to configure with `client:*` directives.  
+You can even specify their priority.  
+  
+I also appreciate the safeguards for easily overlooked issues, such as persistent warnings when Server Render and Client Render produce different results.  
+  
+### Combining Different Frameworks  
+  
+Various frontend frameworks can be used for components that serve as client islands.  
+This lets you choose what fits each part: Qwik or Svelte when performance matters, or React when you want complex logic and a broad range of libraries.  
+  
+Below is the structure of the blog I'm currently building. Most of its components use React.  
+I plan to try different frameworks, including Vue and Svelete, in the blog's Playground section.  
+  
+| Components                                                   | Pages & Layouts                                              |  
+| ------------------------------------------------------------ | ------------------------------------------------------------ |  
+| <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.41.35.webp" alt="CleanShot_2025-02-26_21.41.35" /> | <ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_21.42.09.webp" alt="CleanShot_2025-02-26_21.42.09" /> |  
+  
+## Disadvantages of Astro  
+  
+Using Astro myself, I ran into the following inconveniences.  
+Even so, I think the benefits outweigh them, so I intend to continue building this blog with Astro.  
+  
+### Restrictions on Astro Components and Client Islands  
+  
+Astro's island architecture requires the page files themselves to be `.astro` files implemented as Astro components.  
+(As an exception, `.markdown` files can also be pages.)  
+The APIs provided by Astro also cannot be used inside client islands.  
+  
+Astro components have the following additional restrictions.  
+  
+- The component script and the script in the component template do not share a scope, so the latter cannot use variables or functions declared in the component script.  
+- Values in the component script cannot be changed dynamically by users as they can with React useState. (This is because of SSG.)  
+- If needed, use functions such as document.addEventListener in the component template below to access and modify the DOM directly.  
+  
+```astro title="component.astro"  
+---  
+// 컴포넌트 스크립트 (JS / TS)  
+  
+import Counter from '@/components/Counter';  
+import BaseLayout from '../layouts/baseLayout.astro';  
+  
+const someProps = {  
+  count: 0,  
+};  
+  
+function redirect() {  
+  Astro.redirect('/blog');  
+}  
+  
+---  
+<!-- 컴포넌트 템플릿 (HTML + JS 표현식) -->  
+  
+<BaseLayout title="playground">  
+  <div class="container">  
+    <h1>Playground</h1>  
+    <hr class="title-divider" />  
+    <br />  
+    <section>  
+      <Counter {...someProps} client:visible>  
+        <h1 id="playground-counter">Hello, React!</h1>  
+      </Counter>  
+    </section>  
+    <section>  
+    </section>  
+  </div>  
+</BaseLayout>  
+  
+<script>  
+  document.getElementById('playground-counter').addEventListener('click', redirect); // redirect는 undefiend  
+</script>  
+```  
+  
+For these reasons, there are fewer places to use Javascript than in other meta-frameworks such as Next and Nuxt, or SPAs built with Vue and React.  
+  
+### A Smaller User Base  
+  
+Astro was created in 2021 and is a relatively recent framework, so it has fewer users than the React and Vue ecosystems,  
+and consequently fewer related libraries and community-written resources.  
+I sometimes found no results when searching for problems I encountered, which made development a little difficult.  
+  
+### Restrictions on Programmatic Navigation  
+  
+Astro does not support programmatic navigation through calls such as `router.push('/')`, unlike Next's Navagtion API or the Router libraries for React and Vue.  
+Instead, Astro routes pages through anchor tags. In practice, I found this a significant restriction.  
+[Astro routing](https://docs.astro.build/ko/guides/routing/)  
+  
+```tsx title="Navigation.tsx"  
+import type React from 'react';  
+  
+import { Button } from '@/components/ui/button.tsx';  
+import { Dock, DockIcon } from '@/components/ui/dock';  
+  
+interface Props {  
+  tab: string;  
+}  
+  
+export default function DocNav({ tab }: Props) {  
+  function checkRoute(e: string) {  
+    return tab === e ? 'default' : 'ghost';  
+  }  
+  return (  
+    <Dock direction="middle" className="doc-nav max-md:hidden">  
+      <DockIcon>  
+        <Button variant={checkRoute('home')} size="icon" asChild className="nav-btn">  
+          <a href="/">  
+            Home  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('blog')} size="icon" asChild className="nav-btn">  
+          <a href="/blog/">  
+            Blog  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('project')} size="icon" asChild className="nav-btn">  
+          <a href="/project/">  
+            Project  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('playground')} size="icon" asChild className="nav-btn">  
+          <a href="/playground/">  
+            Playground  
+          </a>  
+        </Button>  
+      </DockIcon>  
+      <DockIcon>  
+        <Button variant={checkRoute('about')} size="icon" asChild className="nav-btn">  
+          <a href="/about/">  
+            About  
+          </a>  
+        </Button>  
+      </DockIcon>  
+    </Dock>  
+  );  
+}  
+```  
+  
+You can force a change of location with `window.location.href = ${link}`,  
+but that bypasses effects such as Astro's Trainsition, so it is not the recommended approach.  
+  
+I used that statement for the blog's mobile navigation menu for performance reasons,  
+but it caused issues such as dark mode briefly turning off during navigation.  
+  
+<ImageLoader src="/files/blog/web/astro/assets/CleanShot_2025-02-26_22.39.30.webp" alt="CleanShot_2025-02-26_22.39.30" />  
+  
+  
+  
+  
+  

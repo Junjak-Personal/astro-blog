@@ -1,0 +1,250 @@
+---  
+title: "『2025年1月 東京旅行』1日目 — もんじゃ焼き・銀座・上野"  
+created: 2026-02-17  
+tags: ['日本', '旅行', '東京', 'もんじゃ焼き', '銀座', '伊東屋文具店', 'アメ横商店街', 'ひつじ']  
+category: Diary  
+thumbnail: /files/blog/diary/25-01-tokyo/assets/20250120_063147954_iOS.webp  
+---  
+  
+import PolaroidGalleryScrapbook from '@/components/Blog/DiaryGallery/PolaroidGalleryScrapbook.astro';  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+export const purposeItems = [  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_020826538_iOS.webp",  
+    thumb: true,  
+    title: "成田空港",  
+    caption: "Narita Airport",  
+    alt: "空港",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_035637959_iOS.webp",  
+    thumb: true,  
+    title: "上野公園",  
+    caption: "Ueno Park",  
+    alt: "距離",  
+  },  
+];  
+  
+export const monjaStreetItems = [  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_045235359_iOS.webp",  
+    thumb: true,  
+    title: "月島もんじゃストリート",  
+    caption: "Tsukishima Monja Street",  
+    alt: "月島もんじゃストリート",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_045428486_iOS.webp",  
+    thumb: true,  
+    title: "もへじ入口",  
+    caption: "Moheji Entrance",  
+    alt: "もへじ入口",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_063147954_iOS.webp",  
+    thumb: true,  
+    title: "もへじ入口2",  
+    caption: "Moheji Entrance 2",  
+    alt: "もへじ入口2",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_052312067_iOS.webp",  
+    thumb: true,  
+    title: "もんじゃ焼き1",  
+    caption: "Monja Yaki 1",  
+    alt: "もんじゃ焼き1",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_052645307_iOS.webp",  
+    thumb: true,  
+    title: "もんじゃ焼き2",  
+    caption: "Monja Yaki 2",  
+    alt: "もんじゃ焼き2",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_055227328_iOS.webp",  
+    thumb: true,  
+    title: "マッシュルームのバター焼き",  
+    caption: "Mushroom Butter Yaki",  
+    alt: "マッシュルームのバター焼き",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/CleanShot_2026-02-21_17.41.28@2x.webp",  
+    thumb: true,  
+    title: "もんじゃ焼き3",  
+    caption: "Monja Yaki 3",  
+    alt: "もんじゃ焼き3",  
+  },  
+];  
+  
+export const ginzaItems = [  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_071735381_iOS.webp",  
+    thumb: true,  
+    title: "伊東屋文具店外観",  
+    caption: "Ginza Itoya",  
+    alt: "伊東屋文具店外観",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_071842544_iOS.webp",  
+    thumb: true,  
+    title: "伊東屋文具店店内1",  
+    caption: "Itoya Interior 1",  
+    alt: "伊東屋文具店店内1",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_072058157_iOS.webp",  
+    thumb: true,  
+    title: "伊東屋文具店店内2",  
+    caption: "Itoya Interior 2",  
+    alt: "伊東屋文具店店内2",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_072627988_iOS.webp",  
+    thumb: true,  
+    title: "伊東屋 文具 万年筆",  
+    caption: "Pens",  
+    alt: "伊東屋 文具 万年筆",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_075849553_iOS.webp",  
+    thumb: true,  
+    title: "伊東屋文具店アクセサリー1",  
+    caption: "Details 1",  
+    alt: "伊東屋文具店アクセサリー1",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_080003757_iOS.webp",  
+    thumb: true,  
+    title: "伊東屋文具店アクセサリー2",  
+    caption: "Details 2",  
+    alt: "伊東屋文具店アクセサリー2",  
+  },  
+];  
+  
+export const uenoItems = [  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_093928366_iOS.webp",  
+    thumb: true,  
+    title: "アメ横商店街",  
+    caption: "Ueno Ameyoko",  
+    alt: "アメ横商店街",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_100950826_iOS.webp",  
+    thumb: true,  
+    title: "居酒屋 焼き鳥",  
+    description: "食べログの評価がよかったので行ってみたが、可もなく不可もなく……。",  
+    caption: "Yakitori",  
+    alt: "居酒屋 焼き鳥",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_123329479_iOS.webp",  
+    thumb: true,  
+    title: "ひつじ入口",  
+    caption: "Hitsuji Entrance",  
+    alt: "ひつじ入口",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_112504045_iOS.webp",  
+    thumb: true,  
+    title: "羊の大昌シチュー",  
+    caption: "Lamb Stew",  
+    alt: "羊の大昌シチュー",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_112507962_iOS.webp",  
+    thumb: true,  
+    title: "羊のローストビーフ",  
+    caption: "Lamb Roasted Beef",  
+    alt: "羊のローストビーフ",  
+  },  
+  {  
+    src: "/files/blog/diary/25-01-tokyo/assets/20250120_121539492_iOS.webp",  
+    thumb: true,  
+    title: "ラムのロースト",  
+    description: "ラム肉がとても柔らかくて美味しかったです。このメニューだけでもここに来る価値があると思います。",  
+    caption: "Lamb Grilled",  
+    alt: "ラムのロースト",  
+  },  
+];  
+  
+<TableOfContents>  
+- ルートと訪れた場所  
+  - ルート  
+  - 訪れた場所  
+- 旅の記録  
+  - 月島もんじゃストリート  
+  - 銀座  
+  - 上野  
+</TableOfContents>  
+  
+## ルートと訪れた場所  
+  
+### ルート  
+  
+<ImageLoader src="/files/blog/diary/25-01-tokyo/assets/CleanShot_2026-02-16_23.09.11@2x.webp" alt="route" />  
+  
+### 訪れた場所  
+  
+- 上野  
+- 池袋  
+- 銀座  
+- アメ横商店街 
+  
+## 旅の記録  
+  
+### 旅行の目的  
+  
+<PolaroidGalleryScrapbook items={purposeItems} />  
+  
+以前一緒に行った東京旅行が楽しかったのか、友人から新婚旅行で東京を案内してほしいと頼まれた。  
+完全に無職だった私は特にすることもなく、友人について旅行でもしようかと二つ返事で引き受けた。こうして決まった1月の東京旅行。  
+後になって、お金を使いすぎたような気がして後悔しています。  
+（旅行を準備していたころはテスラが絶好調で、お金を使っても大丈夫だろうと思っていた。残念ながら、今はそうではないけれど。）  
+  
+### 月島もんじゃストリート  
+  
+<PolaroidGalleryScrapbook items={monjaStreetItems} />  
+  
+友達が東京でもんじゃ焼きを食べたいと言っていたので、このお店を見つけました。  
+月島もんじゃストリートで一番有名な「もへじ」に行ってきました。  
+  
+幸い待たずにすぐに入店して注文できましたが、人が多かったので準備に時間がかかりました。  
+注文したのは、おすすめに載っていた明太もんじゃと五目もんじゃ、それに白子のバターソテー。  
+而今まで置いてあったので、我慢できずに注文した。  
+  
+味はもんじゃの中で一番美味しいです。特にヌルンジと言うべきですが、焦げる直前に生地を削ぎ落とすのがなかなか美味しかったです。  
+レビュー数7,000件にも関わらず、Googleマップで4.8点という高得点を維持できたのは、価格、味、サービスだったと思います。  
+  
+### 銀座  
+  
+<PolaroidGalleryScrapbook items={ginzaItems} />  
+  
+銀座では友人夫妻と別れて、それぞれ自由に過ごすことにした。私は行ってみたかった文房具店の伊東屋へ向かった。  
+購買意欲を刺激する小物や文具が揃っていて、見てるだけでも楽しい文具店です。  
+  
+文具以外にも部屋を彩る小道具が色々あったので、我慢できずにマグネットを購入してしまいました。  
+中学、高校の頃は文房具に興味があったのですが、大学に入ってからはあまり興味がなくなってしまいましたが、また色々な種類があって楽しかったです。  
+  
+### 上野  
+  
+<PolaroidGalleryScrapbook items={uenoItems} />  
+  
+夕方にまた合流して一緒に食事をします。  
+食べログで評価3.4くらいの焼き鳥居酒屋、やきとり大王 上野店に予約して行ってきました。  
+3.4にしてはかなり残念な味だったので、串盛り1本と生ビールを1杯ずつ注文しました。  
+Google は 4.3 でも悪くありませんでした。  
+  
+その後、アメ横商店街を見て回ったのですが、アメ横商品がかなり多く、挑発的なTシャツが堂々と陳列されているものも多く、ちょっと恥ずかしかったです。  
+こんなにたくさんの外国人（東南アジア人、中国人など）がビジネスをしているのには少し驚きました。  
+  
+2回戦目はどこに行こうかと探していたところ、不忍酒造ひつじというお店を見つけました。  
+羊のグリル、羊の大腸のシチュー、羊のローストビーフを注文。ほかはまずまずだったが、羊のグリルは本当においしかった。  
+少し高めのラム肉レストランに立ち寄ったところ、ここのラム肉が柔らかくてよく火が通っていて、ついラムのローストだけ頼んでしまいました。  
+味付けも美味しく、クラフトビールの種類もかなり豊富で、かなり満足のいくお店でした。  
+  
+これで一日が終わります。アメ横商店街で食べた焼き鳥はちょっと残念でしたが、ラム肉のグリルは美味しかったので満足でした。  
+  

@@ -1,0 +1,195 @@
+---  
+title: OS と Browser に custom cursor を適用する  
+created: 2026-02-21  
+tags: ['blog', 'astro', 'cursor', 'claude cowork', 'claude code']  
+category: Web  
+thumbnail: /files/blog/web/astro/assets/cursor-main.webp  
+---  
+  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<ImageLoader src="/files/blog/web/astro/assets/cursor-main.webp" alt="cursor-main" />  
+  
+<TableOfContents>  
+- はじめに  
+- 個人ブログに適用する  
+- Mac OS に適用する  
+</TableOfContents>  
+  
+## はじめに  
+  
+ブログに使えそうなコンポーネントを React Bits で探していたところ、animated cursor を見つけました。  
+そのまま使うには少し物足りなかったので、ほかにかわいいカーソルはないかと探し、次の2つのページを見つけました。  
+  
+1. [ebiebibeam](https://ko-fi.com/ebiebibeam/shop) さんのカーソル販売ページ — フリーレンのカーソルを探していて見つけました。  
+2. [_BLZ_](https://ko-fi.com/blz_404/shop) さんのカーソル販売ページ — 姉に教えてもらいました。  
+  
+1つ目もかわいかったのですが、2つ目のほうがアニメーションのフレーム数が多かったので、そちらに決めました。  
+  
+## 個人ブログに適用する  
+最初は ebiebibeam さんのフリーレンを使っていましたが、_BLZ_ さんのペリカのほうがよく動くので、そちらに変更しました。  
+ブラウザへの適用は、Claude Code に「やって」と頼むとうまく対応してくれました。  
+ただし Astro では、通常の spa と同じ感覚で適当に実装すると、hydration の問題でルート移動がかなり遅くなることがあるため、  
+その点を意識して Claude Code に依頼する必要があります。  
+  
+ブラウザに適用した様子はこちらです。  
+  
+<ImageLoader src="/files/blog/web/astro/assets/cursor-apply-blog.webp" alt="cursor-apply-blog" />  
+  
+適用したコードは次のとおりです。  
+  
+```astro title="PelicaCursor.astro"  
+---  
+/**  
+ * Global Pelica pixel-art cursor.  
+ * Pure vanilla JS — zero framework, zero hydration.  
+ * Persists across View Transitions via transition:persist.  
+ *  
+ * States: normal | link | text | loading  
+ */  
+---  
+  
+<div id="pelica-cursor" transition:persist="pelica-cursor">  
+  <div class="pelica-sprite" data-cursor="normal"></div>  
+  <div class="pelica-sprite" data-cursor="link"></div>  
+  <div class="pelica-sprite" data-cursor="text"></div>  
+  <div class="pelica-sprite" data-cursor="loading"></div>  
+</div>  
+  
+<style>  
+  #pelica-cursor {  
+    pointer-events: none;  
+    position: fixed;  
+    z-index: 9999;  
+    opacity: 0;  
+    transition: opacity 0.15s ease-out;  
+  }  
+  #pelica-cursor.active {  
+    opacity: 1;  
+  }  
+  .pelica-sprite {  
+    width: 32px;  
+    height: 32px;  
+    image-rendering: pixelated;  
+    background-size: calc(32px * 12) 32px;  
+    animation: pelica-anim 3s steps(12) infinite;  
+    display: none;  
+  }  
+  [data-cursor="normal"]  { background-image: url('/cursors/pelica-normal.png'); }  
+  [data-cursor="link"]    { background-image: url('/cursors/pelica-link.png'); }  
+  [data-cursor="text"]    { background-image: url('/cursors/pelica-text.png'); }  
+  [data-cursor="loading"] { background-image: url('/cursors/pelica-loading.png'); }  
+  
+  @keyframes pelica-anim {  
+    from { background-position: 0 0; }  
+    to { background-position: -768px 0; }  
+  }  
+</style>  
+  
+<style is:global>  
+  @media (pointer: fine) {  
+    *, *::before, *::after {  
+      cursor: none !important;  
+    }  
+  }  
+</style>  
+  
+<script>  
+import { isMobileUA } from '@/utils/device';  
+  
+if (!isMobileUA()) {  
+  let el = document.getElementById('pelica-cursor')!;  
+  let sprites = Object.fromEntries(  
+    Array.from(el.querySelectorAll<HTMLElement>('.pelica-sprite')).map(  
+      (s) => [s.dataset.cursor!, s],  
+    ),  
+  );  
+  
+  const LINK_SEL = 'a, button, [role="button"], [tabindex]';  
+  const TEXT_SEL = 'input[type="text"], input[type="search"], input[type="email"], input[type="url"], input[type="password"], input[type="number"], textarea, [contenteditable="true"]';  
+  
+  let currentState = 'normal';  
+  let isLoading = false;  
+  
+  function show(state: string) {  
+    if (state === currentState)  
+      return;  
+    sprites[currentState].style.display = 'none';  
+    currentState = state;  
+    sprites[currentState].style.display = 'block';  
+  }  
+  
+  sprites.normal.style.display = 'block';  
+  
+  function detectState(target: Element): string {  
+    if (isLoading)  
+      return 'loading';  
+    if (target.closest(TEXT_SEL))  
+      return 'text';  
+    if (target.closest(LINK_SEL))  
+      return 'link';  
+    return 'normal';  
+  }  
+  
+  document.addEventListener('astro:after-swap', () => {  
+    const next = document.getElementById('pelica-cursor');  
+    if (next && next !== el) {  
+      el = next;  
+      sprites = Object.fromEntries(  
+        Array.from(el.querySelectorAll<HTMLElement>('.pelica-sprite')).map(  
+          (s) => [s.dataset.cursor!, s],  
+        ),  
+      );  
+      sprites[currentState].style.display = 'block';  
+    }  
+  });  
+  
+  document.addEventListener('astro:before-preparation', () => {  
+    isLoading = true;  
+    show('loading');  
+  });  
+  document.addEventListener('astro:after-swap', () => {  
+    isLoading = false;  
+  });  
+  
+  document.addEventListener('mousemove', (e: MouseEvent) => {  
+    el.style.left = `${e.clientX}px`;  
+    el.style.top = `${e.clientY}px`;  
+    el.classList.add('active');  
+    show(detectState(e.target as Element));  
+  });  
+  
+  document.addEventListener('mouseleave', () => {  
+    el.classList.remove('active');  
+  });  
+  
+  document.addEventListener('mouseenter', (e: MouseEvent) => {  
+    el.style.left = `${e.clientX}px`;  
+    el.style.top = `${e.clientY}px`;  
+  
+    el.classList.add('active');  
+  });  
+}  
+</script>  
+```  
+  
+  
+## Mac OS に適用する  
+ブログに適用した後、OS でも使いたくなりました。  
+上のページからカーソルファイルをダウンロードすると説明書が付いてきますが、Windows 向けでした。Mac os 向けの手順は youtube 動画のリンクで確認する必要がありました。  
+面倒だったので claude cowork に頼んだところ、[古いバージョンの mousecape](https://github.com/alexzielenski/Mousecape/releases) を使うよう案内され、うまく動きませんでした。  
+  
+仕方がないので自分で検索し、Mac os 26 tahoe に対応した [mousecape](https://github.com/AdamWawrzynkowskiGF/Mousecape-TahoeSupport) を見つけてインストールしました。  
+cursor ファイルは windows 用の .ani なので、mac で使うには mousecape 用の .cape 形式に変換する必要があります。  
+この変換は Claude に任せるとうまく対応してくれて、適用できました。  
+  
+適用後の様子は次の画像のとおりです。  
+  
+<ImageLoader src="/files/blog/web/astro/assets/cursor-apply-os.webp" alt="cursor-apply-os" />  
+  
+  
+  
+  
+  
+  

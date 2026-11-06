@@ -1,0 +1,251 @@
+---
+title: Diary Sectionの開発記録
+duration: 2026-02-14 ~ 2026-02-20
+techStacks: ['typescript', 'react', 'threedotjs', 'framer']
+thumbnail: /files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp
+description: 日記投稿用の画像ギャラリーを開発する中での試行錯誤。Three.js WebGL → CSS 3D → R3Fリングカルーセル → シンプルなカルーセル
+---
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import { DiarySection, DiaryGalleryUnified, DiarySectionCarousel } from '@/components/Playground/DiarySection3D';
+import { DiaryCarousel } from '@/components/Blog/DiaryGallery';
+import ImageLoader from '@/components/Blog/ImageLoader';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## 背景
+
+ブログの日記投稿に使う画像ギャラリーを作りたかった。  
+ブログを放置していたが、旧正月の連休にすることがなくて始めた。
+
+
+この[テンプレート](https://v0.app/templates/3-d-gallery-photography-template-JUFK37Esjlj?via=TRX3Vvo)を見て、ブログ記事でもこのように画像と文章を動きのある形で表示したくなった。
+
+<ImageLoader src="/files/playground/diary-seciton-sample.webp" alt="diary-section-sample" />
+
+Three.jsで実装するとよさそうだと思ったものの、自分はThree.jsを知らなかったので、  
+AI（Claude Code）を使って実装することにした。
+
+
+結論から言うと、試行錯誤を経て最もシンプルな形に落ち着いた。
+
+1. Three.jsで3D空間に画像を配置
+2. CSS 3D Transform 
+3. 統合Three.jsギャラリー
+4. Three.jsリングカルーセル
+5. シンプルな画像カルーセル。
+
+---
+
+## 1. Three.js（WebGL）版
+
+最初に`@react-three/fiber`ベースで実装した版。
+
+### 実装内容
+- WebGL Canvas上に画像を3D planeとして配置
+- スクロール進捗に応じてplaneがY軸方向に移動（parallax）
+- スクロールに合わせたカメラのdollyとvertical travel
+- `smoothstep`ベースのfade in/out
+- alphaMap DataTextureによる画像端のsoft fade
+- fogで遠くの画像が自然に消える
+
+### 問題点
+- Three.jsのインスタンスが一つなら問題なかったが、日記ページで9個のDiarySectionがそれぞれ独立したWebGL Canvasを作ると、GPUコンテキスト数の上限に達した
+- 画像配置とカメラの動線が不自然
+- モバイルで深刻な性能低下
+- スクロールの引っ掛かりがひどく、目立つフレーム落ちが発生
+- 下のデモはインスタンスが一つなので性能問題は全くない。実際の日記ページのように9個が同時に存在すると問題が現れる
+
+<DiarySection client:visible variant="webgl"
+  images={[
+    { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "浅草" },
+    { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "すき家の牛丼" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "神馬あかりちゃん" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "神田神社" },
+  ]}
+>
+
+## Three.js版デモ
+スクロールすると、WebGL Canvas上の3D空間で画像が動きます。  
+画像が不自然に重なる部分があり、少し気になります。  
+ここは画像が4枚だけなので性能に問題はありませんが、日記投稿には通常20枚ほどの画像があり、
+その場合は大幅なフレーム落ちが発生しました。
+
+</DiarySection>
+
+---
+
+## 2. CSS 3D Transform版
+
+Three.js版での経験を基に、CSS 3D transformとframer-motionで再実装。
+先にThree.jsで作ったことで、3Dレイアウトとスクロール操作の方向性が決まっていたため、  
+CSS 3Dに移すと、目指す形にある程度近づけた。
+
+### 実装内容
+- CSSの`perspective`と`translateZ / rotateY`による奥行き
+- framer-motionの`useScroll`と`useTransform`によるスクロール連動アニメーション
+- 画像ごとの独立したスクロール区間による順次fade in/out
+- コンテナのscaleとtranslateYによるカメラのシミュレーション
+- `mask-image`のグラデーションによる画像端のsoft fade
+- radial gradient fog (vignette)
+- focus modeの切り替え、サムネイルストリップ、ライトボックス
+
+### Three.jsからの改善点
+- WebGL Canvasを使わずブラウザーのcompositorによるGPUアクセラレーションだけを使うため、コンテキスト数の上限問題が解消
+- 同じページに複数のセクションがあっても性能問題なし
+- 追加最適化は必要だが、Three.js版よりある程度滑らかにスクロールする
+
+<DiarySection client:visible
+  images={[
+    { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "浅草" },
+    { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "すき家の牛丼" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "神馬あかりちゃん" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "神田神社" },
+  ]}
+>
+
+## CSS 3D版デモ
+スクロールすると、`perspective`と`translateZ`で奥行きを付けた画像が順番に現れます。
+画像が不自然に重なる問題は残っています。  
+画像の位置とサイズがランダムに決まるため、一部のコンテンツが正しく見えない問題があります。
+
+</DiarySection>
+
+---
+
+## 3. 統合Three.jsギャラリー
+
+リングカルーセルの「複数Canvas」が大きな負荷を生むと考え、
+ページ全体を一つのThree.js Canvasに統合する方法も試した。
+
+### コンセプト
+- `DiaryGalleryUnified`: 全セクションの画像を一つのCanvasに描画
+- セクション間の切り替えをカメラ移動で処理
+- `useUnifiedScroll`フックでスクロール進捗をセクション番号に対応付け
+- テクスチャキャッシュの共有でメモリーを効率化
+
+### 採用しなかった理由
+- Astroのislandアーキテクチャと根本的に衝突。`client:visible`で遅延hydrationする構成と単一Canvasを両立できない
+- ページに入ったときに全画像のテクスチャを一度に読み込む必要がある
+- 3D Canvasに文章を重ねることによるアクセシビリティの問題
+
+<DiaryGalleryUnified client:visible
+  sections={[
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "浅草" },
+        { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "すき家の牛丼" },
+      ],
+    },
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "神馬あかりちゃん" },
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "神田神社" },
+      ],
+    },
+  ]}
+>
+
+## セクション1
+
+統合ギャラリーデモ — 全セクションの画像を一つのCanvasに描画します。
+スクロールに合わせてカメラが動き、画像が順番に現れます。
+
+## セクション2
+
+2番目のセクションです。右側のドットで現在のセクションを確認でき、画像を押すとライトボックスが開きます。
+
+</DiaryGalleryUnified>
+
+---
+
+## 4. Three.jsリングカルーセル
+
+CSS 3D版には実装上の限界があり、最初のThree.js版はモバイルでクラッシュが頻発したため、  
+テンプレートのように多数の写真を入れてギャラリー風に見せるのは難しいと判断した。
+別の方向を試そうとサンプルを探し、Three.jsのリング型[カルーセルの例](https://3d-carousel.wawasensei.dev/)を見つけた。
+
+
+### コンセプト
+- `@react-three/fiber`ベースの3Dリング型カルーセル
+- 画像を円筒状に配置し、セクションのドットを押すとリングが回転
+- 高さ`calc(100dvh - 150px)`の没入型ビュー
+- alphaMapによる画像端のsoft fade
+- スクロールではなくクリックによるナビゲーション
+
+### 実装の試み
+- `CarouselRing.tsx`: R3F Scene — 画像を円形に配置し、`atan2`でカメラを向くように回転
+- `UnifiedImagePlane.tsx`: 各画像のplane — テクスチャ読み込み、alphaMap、opacityのアニメーション
+- `buildCarouselLayout.ts`: 円形配置の計算（半径・角度）
+- `carouselAlphaMap.ts`: soft-edge DataTextureを生成（RGBAFormatが必須。GREENチャンネルの問題を学んだ）
+- `texturePreload.ts`: 同時実行数を制限したテクスチャローダー、`createImageBitmap`とcanvasへのフォールバック
+
+<DiarySectionCarousel client:visible
+  sections={[
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "浅草" },
+        { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "すき家の牛丼" },
+          { src: "/files/blog/diary/japan-around-trip/assets/20241223_020939713_iOS.webp", alt: "松島の海岸の眺め1" },
+        
+      ],
+    },
+    {
+      images: [
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "神馬あかりちゃん" },
+        { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "神田神社" },
+         { src: "/files/blog/diary/25-01-tokyo/assets/20250120_112504045_iOS.webp", alt: "ヒツジの羊焼き" },
+
+      ],
+    },
+  ]}
+>
+
+## セクション1
+
+R3Fリングカルーセルのデモ — スクロールすると3Dリングが回転し、画像が切り替わります。下のドットを押してセクションを移動することもできます。
+
+## セクション2
+
+2番目のセクションです。リング上の画像を押すとライトボックスが開きます。
+
+</DiarySectionCarousel>
+
+---
+
+## 5. 最終版: DiaryCarousel
+
+Three.jsリングカルーセルは性能問題もある程度解決し、モバイルでの動作にも問題はなかった。  
+ただ、スクロールや見せ方はPCのブラウザーではよかったものの、
+モバイルではスクロールもコンテンツの閲覧もしにくく、ここまでして実装する意味があるのか疑問に感じた。  
+
+そんな中、フォローしているanthony-fuのブログで、[ある記事](https://antfu.me/posts/hello-tokyo)がカルーセルと文章だけで構成されているのを見た。  
+わざわざ複雑にする必要はないのではと思い、モバイルではむしろ単純な方が見やすいため、シンプルにすることに決めた。
+
+<ImageLoader src="/files/playground/anthony-fu-blog-post.webp" alt="anthony-fu" />
+
+
+
+### 実装内容
+- `embla-carousel-react`ベースのカルーセル（既存のui/carouselコンポーネントを再利用）
+- 画像をクリックしてライトボックスを開く（`ImageLightbox`）
+- 動画対応（`videos` prop）
+- カウンターバッジ（現在のスライド / 全体）
+- デスクトップは左右の矢印、モバイルはスワイプ
+
+### 利点
+- 追加バンドルなし。既存の`Carousel`と`ImageLightbox`を組み合わせる
+- 100行未満の単一コンポーネント
+- 3Dギャラリーよりバンドルサイズを大幅に削減（Three.js・R3F・framer-motionの3Dロジックを除去）
+- ネイティブに近いモバイルのスワイプ操作
+- `client:visible`と自己終了JSXでMDXの記述が簡単
+- キーボード操作とスクリーンリーダーに対応し、アクセシビリティも良好
+
+<DiaryCarousel client:visible
+  content={[
+    { src: "/files/blog/diary/japan-around-trip/assets/636F22B7-579E-4FC8-A0AC-E062DF61CBCC_1_105_c.webp", alt: "浅草" },
+    { src: "/files/blog/diary/japan-around-trip/assets/53707095-F4FB-4238-BFD8-4DDEC1C2ECB7_1_105_c.webp", alt: "すき家の牛丼" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.53.01.webp", alt: "神馬あかりちゃん" },
+    { src: "/files/blog/diary/japan-around-trip/assets/CleanShot_2025-10-25_15.55.09.webp", alt: "神田神社" },
+  ]}
+/>

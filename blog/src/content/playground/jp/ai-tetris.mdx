@@ -1,0 +1,38 @@
+---
+title: AI Tetris
+duration: 2025-10-22 ~ 2025-10-22
+techStacks: ['typescript', 'vue', 'nuxt', 'tailwindcss', 'netlify']
+thumbnail: /files/project/ai-tetris/ai-tetris-screenshot.webp
+description: Perplexity AIのコード生成機能を使い、ワンクリックで作ったNuxt 3ベースのテトリスです。<br/>Nuxt UI 4とTailwind CSSでスタイリングし、SSGで公開したクライアントサイドのゲームです。
+---
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import ImageLoader from '@/components/Blog/ImageLoader.astro';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+## 説明
+Perplexity AIのコード生成機能を使い、ワンクリックで作ったNuxt 3ベースのテトリスです。  
+Nuxt UI 4とTailwind CSSでスタイリングし、SSGで公開したクライアントサイドのゲームです。  
+AIが生成したコードだけで完成したプロジェクトです。テトリスのように蓄積されたデータが多いものは、やはりAIが簡単にうまく作れるのだと感じました。
+
+## プロジェクトの画面
+
+<ImageLoader src="/files/project/ai-tetris/ai-tetris-screenshot.webp" alt="AI Tetrisのゲーム画面" />
+
+### サイトリンク
+- [AI Tetris](https://sample-ai-tetris.netlify.app/)
+- [Github](https://github.com/JunjaK/ai-tetris)
+
+## 技術スタック
+- Nuxt 3: SSGフレームワーク
+- Nuxt UI 4: UIコンポーネント
+- Tailwind CSS: スタイリング
+- Netlify: 静的サイトの公開
+
+## 主な機能
+- ブロックの移動・回転・ソフトドロップ・ハードドロップ
+- ブロックの保留（Hold）と次のブロックの表示（Next）
+- スコア・ライン数・レベルの仕組み
+- 一時停止機能
+- ダークテーマのUI

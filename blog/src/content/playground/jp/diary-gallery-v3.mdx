@@ -1,0 +1,87 @@
+---
+title: Diary Gallery ver3
+duration: 2026-06-29 ~ current
+techStacks: ['typescript', 'react', 'framer']
+thumbnail: /files/blog/diary/25-01-tokyo/assets/20250120_063147954_iOS.webp
+description: 旅の懐かしさを感じるDiary Gallery ver3 — 航空郵便のポストカード・フィルムスライド・旅行日記の3種類を比較。
+---
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import { PostcardGallery, FilmStripGallery, JournalGallery, VelocityStream } from '@/components/Blog/DiaryGallery/v3';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+export const sample = [
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_020826538_iOS.webp',
+    thumb: true,
+    title: '成田空港',
+    caption: 'Narita',
+    description: 'ようやく成田に到着。冬の空気が鼻先を刺した。',
+    alt: '成田空港',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_035637959_iOS.webp',
+    thumb: true,
+    title: '上野公園',
+    caption: 'Ueno Park',
+    description: '落ち葉の敷き詰められた上野公園をゆっくり歩いた。',
+    alt: '上野公園',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_045235359_iOS.webp',
+    thumb: true,
+    title: '月島もんじゃストリート',
+    caption: 'Tsukishima',
+    description: 'もんじゃ焼きの店が並ぶ路地。匂いだけで食欲が湧いた。',
+    alt: '月島もんじゃストリート',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_052312067_iOS.webp',
+    thumb: true,
+    title: 'もんじゃ焼き',
+    caption: 'Monjayaki',
+    description: '初めて自分で焼いて食べたもんじゃ焼き。思ったより手間がかかった。',
+    alt: 'もんじゃ焼き',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_055227328_iOS.webp',
+    thumb: true,
+    title: 'きのこのバター焼き',
+    caption: 'Butter Yaki',
+    description: 'バターで焼いたきのこを一口。自然とお酒が進んだ。',
+    alt: 'きのこのバター焼き',
+  },
+  {
+    src: '/files/blog/diary/25-01-tokyo/assets/20250120_063147954_iOS.webp',
+    thumb: true,
+    title: '銀座の夜景',
+    caption: 'Ginza Night',
+    description: '明かりの灯った銀座の夜。一日の終わりがきらめいていた。',
+    alt: '銀座の夜景',
+  },
+];
+
+## A. 航空郵便のポストカード
+
+低い地図・クラフト紙の机に並ぶポストカード。カードをクリックすると、ライトボックス内で3Dに裏返ります（表は写真、裏は手書きの手紙）。
+
+<PostcardGallery client:visible items={sample} />
+
+## B. ヴィンテージフィルム / スライド
+
+スプロケット穴とセピア色の35mmフィルムストリップ。フレームを押すとライトテーブル上のスライドマウントに拡大し、ラベルは手書き書体で表示されます。マウントはマウスに合わせて少し傾きます。
+
+<FilmStripGallery client:visible items={sample} />
+
+## C. 旅行日記
+
+綴じた日記帳の見開きに、マスキングテープで貼った写真。写真を押すとページが3Dに持ち上がり、余白のメモが手書き書体で表示されます。
+
+<JournalGallery client:visible items={sample} />
+
+## D. 速度に連動する3Dストリーム
+
+[Motionのscroll-velocityサンプル](https://examples.motion.dev/react/scroll-velocity-linked-offset)の手法です。写真が奥行きを持って斜めに並ぶ3Dストリームで、**スクロールすると流れ**、スクロール速度（`useVelocity`）がカードの傾きとオフセットに波のようにリアルタイムで反映されます。カードを押すとライトボックスに拡大し、キャプションは手書き書体で表示されます。
+
+<VelocityStream client:visible items={sample} />

@@ -1,18 +1,18 @@
 ---
-import { getCollection } from 'astro:content';
 // Component Imports
 import EachArticles from '@/components/Project/EachArticles';
 import { createTranslator, getLocaleFromUrl, localizePath } from '@/i18n';
 import BaseLayout from '@/layouts/baseLayout.astro';
+import { getLocalizedCollection } from '@/utils/localizedContent';
 
-const projects = await getCollection('playground');
+const locale = getLocaleFromUrl(Astro.url);
+const projects = await getLocalizedCollection('playground', locale);
 projects.sort((a, b) => {
   const aDate = new Date(a.data.duration.split(' ~ ')[0]);
   const bDate = new Date(b.data.duration.split(' ~ ')[0]);
   return bDate.getTime() - aDate.getTime();
 });
 
-const locale = getLocaleFromUrl(Astro.url);
 const t = createTranslator(locale);
 const description = t('site.playground_description', 'Interactive demos and experiments with frontend technologies');
 ---

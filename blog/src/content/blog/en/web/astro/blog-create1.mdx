@@ -1,0 +1,125 @@
+---  
+title:  "Building My Blog, Part 1 — Framework and Library Setup"  
+created: 2025-02-24  
+updated: 2025-02-25  
+tags: ['blog', 'astro', 'react', 'shadcn-ui', 'nyxb-ui']  
+category: Web  
+thumbnail: /files/blog/web/astro/assets/blog-create1-thumb.webp  
+---  
+  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<TableOfContents>  
+- Introduction  
+  - First Attempt  
+  - Second Attempt (Current)  
+- Choosing the Technology Stack  
+  - Astro  
+  - CSS Library  
+- Next Goals  
+</TableOfContents>  
+  
+  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-thumb.webp" alt="blog-create1-thumb" />  
+  
+## Introduction  
+  
+I have a habit of solving development problems without properly recording the solutions, only to forget them soon afterward.  
+I also thought that, as a developer, I ought to have a development blog of my own,  
+and that organizing my development notes on a blog would both help me remember and leave a record. With those two benefits in mind, I decided to build one.  
+  
+### First Attempt  
+  
+My first attempt was around July 2022, driven by much the same motivation.  
+But work was busy, and friction with the company had left me in a poor state of mind. I made a rough layout, and the effort gradually fizzled out.  
+It should be in my project list, but it remains unfinished.  
+  
+  
+  
+The stack I chose then was nuxt3 content, which was still in beta,  
+and I planned to turn locally stored Markdown content into a nicely styled ssg site.  
+  
+This is the [unfinished site](https://jundev-blog.netlify.app/) I made then. I spent about 20–30 hours on it before stopping.  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-before.webp" alt="blog-create1-before" />  
+  
+### Second Attempt (Current)  
+  
+I left my company at the end of August 2024 and spent some time playing games and traveling. Eventually I felt I was drifting too much and wanted to exercise my development skills again,  
+so I decided to revive the development blog I had put off, while also building something I had wanted to make.  
+  
+  
+  
+The first attempt this time was on January 8, 2025.  
+I only ran a few basic technology tests then. After dealing with other plans, I began working on it properly on February 9.  
+  
+Getting back into serious development after a while was quite fun.  
+  
+  
+  
+In this series, I will write about the trial and error of building the blog, the problems I solved, and the libraries I enjoyed using.  
+  
+## Choosing the Technology Stack  
+  
+I wanted to build a blog myself, piece by piece, rather than use an existing platform such as medium, velog, or tistory.  
+  
+I had been interested in Astro because fireship, an IT YouTuber I follow, praised it so highly. I decided to test it out and see whether I could build the blog with it as a way to evaluate the technology.  
+  
+### Astro  
+  
+My first impression was that Astro had thorough documentation and a good tutorial. I liked both.  
+  
+Compared with the nuxt content I used on my first attempt, Astro offered more specific APIs and a more convenient workflow. It felt like a step forward, so I chose Astro.  
+Another advantage is Astro's [Island](https://docs.astro.build/ko/concepts/islands/) structure, which lets you build components in Vue, React, Svelte, or other frameworks and add them to an astro page.  
+After using Vue almost exclusively, I am now trying React. Being able to use React while also plugging in other frameworks for experiments was appealing.  
+  
+  
+  
+I plan to write a separate post about using Astro and my experience with it.  
+  
+### CSS Library  
+  
+For the CSS Library, I wanted to use Shadcn-ui, which has recently been popular in the React ecosystem.  
+The components were slightly different from the design I wanted, so I looked through a collection called awesome-shadcn,  
+and found quite a few libraries offering freely customized versions of shadcn-ui.  
+  
+  
+  
+One was [Nyxb-UI](https://nyxbui.design/). Many of its components include animations, which seemed perfect for a blog, so I decided to use it.  
+As a library based on Shadn-cn, its layout and documentation follow the same structure as shadcn,  
+and it includes the standard shadcn components along with additional custom components.  
+  
+---  
+  
+>Looking at it later, it almost feels like magic ui was copied over..? The contents are nearly identical.  
+>Is the difference that nyxb-ui also includes shadncn/ui components?  
+  
+  
+  
+I used a few components I liked to put together the page.  
+  
+### The Initial Header Design  
+  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-header.webp" alt="blog-create1-header" />  
+  
+### The Initial Main Page  
+  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-main.webp" alt="blog-create1-main" />  
+  
+## Next Goals  
+  
+I had roughly styled the layout and main page, but page routing seemed to behave incorrectly, and the example dark and light theme switch was a little strange too.  
+I therefore set the following goals, including the remaining features to build.  
+  
+- Tidy up the layout  
+  - Fix the Header (Shadcn Tabs respond strangely slowly)  
+  - Add a Footer  
+  - Improve responsive behavior  
+- Analyze and fix page-routing issues  
+- Add elements to Home  
+- Add the Blog listing and detail pages  
+  
+  
+  
+  

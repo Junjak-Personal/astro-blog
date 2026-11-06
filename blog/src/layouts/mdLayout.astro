@@ -117,7 +117,7 @@ const t = createTranslator(locale);
         <div class="blog-nav">
           <BlogNav locale={locale} nav={nav} client:visible />
         </div>
-        <div class="article-entry" lang="ko" data-pagefind-body>
+        <div class="article-entry" lang={htmlLanguage(locale)} data-pagefind-body>
           {tags.map((tag) => (
             <meta data-pagefind-filter={`tag:${tag}`} />
           ))}

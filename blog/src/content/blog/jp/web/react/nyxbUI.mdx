@@ -1,0 +1,135 @@
+---  
+title: Nyxb UI  
+created: 2025-02-20  
+updated: 2025-02-20  
+tags: [ 'css-framework', 'react', 'shadcn-ui', 'tailwind-css' ]  
+category: Web  
+thumbnail: /files/blog/web/react/assets/nyxbui-main.webp  
+---  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+  
+<TableOfContents>  
+- はじめに  
+- Nyxb UI?  
+  - コンポーネントの例  
+- 使い方  
+- まとめ  
+</TableOfContents>  
+  
+  
+<ImageLoader src="/files/blog/web/react/assets/nyxbui-main.webp" alt="nyxbui-main" />  
+  
+## はじめに  
+  
+ブログに使えそうなCSS Frameworkを探していたところ、[awesome shadcn-ui](!https://github.com/bytefer/awesome-shadcn-ui)で偶然このライブラリーを見つけた。  
+  
+名前はNyxb UI。  
+  
+ブログなのでアニメーションをたくさん入れたかったのだが、このライブラリーはまさにぴったりだった。  
+  
+使い心地もよかったので、もう少し詳しく紹介してみたい。  
+  
+  
+  
+## Nyxb UI?  
+  
+shadcn-uiをベースにしたui componentsの集まりと言える。  
+  
+公式サイトのレイアウトもshadcn-uiとあまり違わない。  
+  
+紹介の理念には、これはコンポーネントライブラリーではないと書かれている。全文を読むと、  
+  
+> This is **NOT** a component library. It's a collection of re-usable components that you can copy and paste into your apps.  
+>  
+> **What do you mean by not a component library?**  
+>  
+> I mean you do not install it as a dependency. It is not available or distributed via npm.  
+>  
+> Pick the components you need. Copy and paste the code into your project and customize to your needs. The code is yours.  
+>  
+> *Use this as a reference to build your own component libraries.*  
+  
+必要なものをコピー＆ペーストして使うということらしい。shadcn-uiの説明と大きくは変わらない……。  
+  
+違いとしては、shadcn-uiのコンポーネントがすべてそろったうえで、アニメーションや動的な要素を持つコンポーネントが多く追加されていること。  
+  
+代表的な例は次のとおり。  
+  
+### コンポーネントの例  
+  
+- [Letter Pullup](!https://nyxbui.design/docs/components/letter-pullup)  
+  
+  <ImageLoader src="/files/blog/web/react/assets/nyxbui-letter-pull-up.webp" alt="CleanShot 2025-02-20 at 04.03.07" />  
+  
+- [Terminal](!https://nyxbui.design/docs/components/terminal)  
+  
+<ImageLoader src="/files/blog/web/react/assets/nyxbui-terminal.webp" alt="CleanShot 2025-02-20 at 04.02.04" />  
+  
+- [Interactive Icon Cloud](!https://nyxbui.design/docs/components/icon-cloud)  
+  <ImageLoader src="/files/blog/web/react/assets/nyxbui-iconcloud.webp" alt="CleanShot 2025-02-20 at 03.58.17" />  
+  
+## 使い方  
+  
+使い方もshadcn-uiとあまり変わらない。  
+  
+```shell title="terminal"  
+pnpm dlx nyxb@latest add button  
+```  
+  
+```tsx title="ButtonDemo.tsx"  
+import { Button } from "~/components/ui/button"  
+  
+export function ButtonDemo() {  
+   return <Button>Button</Button>  
+}  
+```  
+  
+必要なコンポーネントをpnpm dlxやnpxなどで実行すると、`./src/components/ui`にbutton.tsxなどのファイルが作られる。  
+  
+カスタマイズが必要なら自由に変更でき、そのまま使っても構わない。  
+  
+一部のコンポーネントでは、shadcn-uiがradix-uiに依存しているため、dependencyがインストールされることもある。（理念と違わないだろうか……。）  
+  
+```json title="packge.json"  
+{  
+  "dependencies": {  
+    "@radix-ui/react-avatar": "^1.1.3",  
+    "@radix-ui/react-collapsible": "^1.1.3",  
+    "@radix-ui/react-dialog": "^1.1.6",  
+    "@radix-ui/react-dropdown-menu": "^2.1.6",  
+    "@radix-ui/react-label": "^2.1.1",  
+    "@radix-ui/react-scroll-area": "^1.2.3",  
+    "@radix-ui/react-select": "^2.1.6",  
+    "@radix-ui/react-separator": "^1.1.2",  
+    "@radix-ui/react-slot": "^1.1.1",  
+    "@radix-ui/react-tabs": "^1.1.2",  
+    "react-hook-form": "^7.54.2",  
+    "react-icon-cloud": "^4.1.7"  
+  }  
+}  
+  
+```  
+  
+ブログ用のコンポーネントをあれこれ追加していたら、package.jsonのdependencyがこのくらい増えていた。  
+  
+## まとめ  
+  
+Webサイトにアニメーションや動的な要素を入れたいなら、おすすめできるライブラリーだ。  
+  
+ant-designなどと比べるとform系の要素は少し物足りないので、ブログやランディングページなどの静的サイトに使うのがよさそうだ。  
+  
+実際、このライブラリーを使ってブログを作っているが、なかなかよい感じだ。  
+  
+文字のアニメーションではFramer Motionの使い方も学べたし……。  
+  
+ただ、一部のコンポーネントには、最適化の問題なのか、かなり大きなパフォーマンス上の問題があった。  
+  
+使うものは適度に選んだほうがよさそうだ。  
+  
+例：[Interactive Grid Pattern](!https://nyxbui.design/docs/components/interactive-grid-pattern)  
+  
+  
+  

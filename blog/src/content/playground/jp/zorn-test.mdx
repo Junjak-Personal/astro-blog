@@ -1,0 +1,131 @@
+---  
+title: Zorn - Video Player Test
+duration: 2025-03-30 ~ 2025-04-01
+techStacks: ['Astro']  
+thumbnail: /files/playground/zorn.webp
+description: Astro専用のVideo Player、zornをテストします。
+---  
+
+import ProjectInfo from '@/components/Project/ProjectInfo.astro';
+import ZornSubtitleTest from '@/components/Playground/ZornTest/ZornSubtitleTest.astro';
+import ZornYoutubeTest from '@/components/Playground/ZornTest/ZornYoutubeTest.astro';
+import { Zorn } from '@minpluto/zorn';
+import {Separator} from '@/components/ui/separator.tsx';
+
+<ProjectInfo frontmatter={frontmatter} />
+
+
+## 概要
+- Astro界隈でよくできたVideoPlayerライブラリのZornを見つけたので、試すことにした。
+
+
+## テスト
+### 基本テスト
+Settingsオプションを追加しないと、以下のエラーが発生する。  
+`Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')`
+
+### YouTube
+ZornはYouTube動画の再生にInvidiousを使っているが、  
+その処理でエラーが発生し、YouTube動画を再生できていない。  
+この件についてissueを作成し、返答を待っている...
+
+[Zornのissueリンク](https://ark.sudovanilla.org/MinPluto/Zorn/issues/3)
+
+<Separator/>
+
+開発者によると、自分でInvidiousのインスタンスを構築して使ってほしいとのこと。  
+YouTubeがInvidiousをブロックしようとしている様子なので断念。  
+YouTubeはそのままiframeで埋め込もう。
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/HyzlYwjoXOQ?si=QLfSvkz-bcZYhxPD" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+
+
+```astro title="ZornYoutubeTest.astro"
+---
+import { Zorn } from '@minpluto/zorn';
+---
+
+<Zorn
+  YouTube
+  Audio
+  WatchId="uBFTCK1EzM4"
+  YouTubeQuality="137"
+  Invidious="yewtu.be"
+  PlayerName="Junjak111"
+  ShowBackAndForward
+  ShowPlaybackRate
+  BigPlayButton
+  Settings={[]}
+/>
+```
+
+### 字幕
+
+HTML5のvideo要素内のtrackタグと同じように使う。   
+ただ、字幕言語を2つ以上設定すると、字幕の選択メニューを読み込めないようだ...   
+再読み込みでは字幕が正常に出るが、ページ移動時には出ない問題も発生。  
+
+[trackタグのドキュメント](https://developer.mozilla.org/ko/docs/Web/HTML/Element/track)
+
+
+[Zornのissueリンク](https://ark.sudovanilla.org/MinPluto/Zorn/issues/4)
+
+<Separator/>
+
+issueで解決方法を教えてもらった。  
+今は正常に動いている。
+
+
+
+<ZornSubtitleTest />
+
+```astro title="ZornSubtitleTest.astro"
+---
+import { Zorn } from '@minpluto/zorn';
+---
+
+<Zorn
+  PlayerName="Junjak222"
+  Video="https://www.jun-devlog.win/files/blog/diary/japan-around-trip/assets/IMG_3043.MOV"
+  Subtitles
+  ShowBackAndForward
+  ShowPlaybackRate
+  BigPlayButton
+  Settings={[
+    {
+      Type: 'Button',
+      Name: 'Subtitles',
+      Action: 'document.querySelector(\'#zorn-player-Junjak222 #zorn-menu-subtitles\').style.display = \'flex\'',
+    },
+  ]}
+>
+  <slot slot="subtitles">
+    <track
+      kind="subtitles"
+      src="/vtts/testsub.vtt"
+      label="Korean"
+      srclang="ko"
+    />
+    <track
+      kind="subtitles"
+      src="/vtts/testsub.vtt"
+      label="Japanese"
+      srclang="ja"
+    />
+  </slot>
+</Zorn>
+
+```
+
+
+
+## 評価
+- デザインがよく、機能も豊富
+- ただしバグもかなり多そう（上で触れた問題など）
+- バグ修正などの貢献を考えているが、GitHubではなく個人で運営するリポジトリなので活動記録を残しにくく、少しためらっている。
+- ひとまずブログのVideoLoaderには複雑な機能が不要なので、従来のHTML videoタグからzornへ置き換えた。
+
+## 参考
+
+[Zorn ](https://zorn.docs.sudovanilla.org/introduction/)

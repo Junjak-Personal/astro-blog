@@ -66,18 +66,57 @@ test('language selection preserves the page, query, hash, and subsequent navigat
   await expect(page.getByTestId('navigation-language-en-select')).toHaveAttribute('aria-checked', 'false');
 });
 
-test('localized article routes preserve the original article body', async ({ page, request }) => {
+test('localized article routes render the selected translation and preserve English headings', async ({ page, request }) => {
   const original = await request.get('/project/memo/');
   const korean = await original.text();
+  expect(korean).toContain('Markdown 파일');
   await page.goto('/en/project/memo/');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.locator('.article-entry')).toHaveAttribute('lang', 'ko');
+  await expect(page.locator('.article-entry')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('.article-entry')).not.toContainText('Markdown 파일');
   const heading = await page.locator('.article-entry h2').first().textContent();
-  expect(korean).toContain(heading?.trim() ?? 'Intro');
+  expect(heading?.trim()).toBe('Intro');
   await page.getByTestId('navigation-language-open').click();
   await page.getByTestId('navigation-language-jp-select').click();
   await expect(page).toHaveURL(/\/jp\/project\/memo\/$/);
+  await expect(page.locator('.article-entry')).toHaveAttribute('lang', 'ja');
+  await expect(page.locator('.article-entry')).not.toContainText('Markdown 파일');
   await expect(page.locator('.article-entry h2').first()).toHaveText(heading ?? 'Intro');
+});
+
+test('each locale lists one translated version per post and publishes a matching RSS feed', async ({ page, request }) => {
+  for (const language of languages) {
+    const feed = await request.get(`${language.path}/rss.xml`);
+    expect(feed.status()).toBe(200);
+    const xml = await feed.text();
+    expect(xml.match(/<item>/g)).toHaveLength(42);
+    expect(xml).toContain(`<language>${language.html}</language>`);
+    expect(xml).toContain(`${language.path}/blog/`);
+    expect(xml).not.toMatch(/\/blog\/(?:en|jp|ko)\//);
+    await page.goto(`${language.path}/blog/`);
+    await expect(page.locator('h1')).toHaveText('Blog');
+    await expect(page.locator('.article-wrapper > a').first()).toBeVisible();
+    const postLinks = await page.locator('.article-wrapper > a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+    expect(new Set(postLinks).size).toBe(postLinks.length);
+    expect(postLinks.every((href) => href?.startsWith(`${language.path}/blog/`))).toBe(true);
+    expect(postLinks.every((href) => !/\/blog\/(?:en|jp|ko)\//.test(href ?? ''))).toBe(true);
+  }
+});
+
+test('lyrics render the selected translation language before hydration and keep the original lyrics', async ({ request }) => {
+  const labels = { en: 'English translation 1', jp: '日本語訳 1' };
+  for (const language of languages) {
+    const response = await request.get(`${language.path}/blog/music/lovememore/`);
+    expect(response.status()).toBe(200);
+    const html = await response.text();
+    if (language.locale === 'ko') {
+      expect(html).not.toContain('data-testid="music-translation-toggle-0"');
+    }
+    else {
+      expect(html).toContain(labels[language.locale]);
+    }
+    expect(html).toContain('나의 밤이 또 가기 전에');
+  }
 });
 
 test('Japanese navigation fits desktop and mobile widths', async ({ page }) => {

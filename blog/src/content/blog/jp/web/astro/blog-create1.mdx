@@ -1,0 +1,125 @@
+---  
+title:  "ブログ開発記1 — フレームワークとライブラリーの設定"  
+created: 2025-02-24  
+updated: 2025-02-25  
+tags: ['blog', 'astro', 'react', 'shadcn-ui', 'nyxb-ui']  
+category: Web  
+thumbnail: /files/blog/web/astro/assets/blog-create1-thumb.webp  
+---  
+  
+import ImageLoader from '@/components/Blog/ImageLoader.astro';  
+import VideoLoader from '@/components/Blog/VideoLoader.astro';  
+import TableOfContents from '@/components/Blog/TableOfContents.astro';  
+  
+<TableOfContents>  
+- はじめに  
+  - 最初の挑戦  
+  - 2回目の挑戦（現在）  
+- 技術スタックを選ぶ  
+  - Astro  
+  - CSS Library  
+- 次の目標  
+</TableOfContents>  
+  
+  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-thumb.webp" alt="blog-create1-thumb" />  
+  
+## はじめに  
+  
+開発中の問題を解決しても、きちんと記録しないせいですぐに忘れてしまう、という悪い癖がある。  
+それに、開発者なら自分の開発ブログくらい持っていたいという気持ちもあり、  
+開発ブログを作って記録を整理すれば、忘れにくくなるうえに記録も残って一石二鳥ではないか。そんな思いでブログを作ることにした。  
+  
+### 最初の挑戦  
+  
+最初に作ろうとしたのは2022年7月ごろで、そのときも動機は先ほどと同じだった。  
+ただ、仕事が忙しいうえに会社との衝突もあり、精神的に余裕のない時期だった。大まかなレイアウトだけ作って、そのまま立ち消えになってしまった。  
+プロジェクト一覧にもあるはずだが、未完成のままだ。  
+  
+  
+  
+そのとき選んだのは、まだbetaだったnuxt3のcontent。  
+ローカルにcontentとして保存したマークダウンを少し見栄えよく加工し、ssgのサイトにするつもりだった。  
+  
+こちらが当時作った[未完成のサイト](https://jundev-blog.netlify.app/)。20〜30時間ほどかけたところで中断した。  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-before.webp" alt="blog-create1-before" />  
+  
+### 2回目の挑戦（現在）  
+  
+2024年8月末に退職してからは、ゲームや旅行をして遊んでいた。さすがにだらだらしすぎだと感じ、開発の勘を取り戻すためにも、  
+作りたかったものを開発するためにも、後回しにしていた開発ブログにもう一度取り組むことにした。  
+  
+  
+  
+今回最初に手を付けたのは2025年1月8日。  
+そのときは簡単な技術検証だけ行い、ほかの予定を済ませて、本格的に着手したのは2月9日から。  
+  
+久しぶりに本格的な開発をすると、それなりに楽しかった。  
+  
+  
+  
+この連載では、ブログ開発中の試行錯誤や解決した問題、使ってみて気に入ったライブラリーなどを書いていく。  
+  
+## 技術スタックを選ぶ  
+  
+ブログを作るなら、mediumやvelog、tistoryといった既存のプラットフォームより、自分で一つずつ作っていきたかった。  
+  
+購読しているIT系YouTuberのfireshipがAstroを絶賛していて、以前から気になっていた。技術検証も兼ねてブログをAstroで作ってはどうかと思い、まず試してみた。  
+  
+### Astro  
+  
+まずAstroはドキュメントが充実していて、チュートリアルもよくできていると感じた。この二つが気に入った。  
+  
+最初のブログ作りで使ったnuxt contentと比べても、Astroはより具体的なAPIと使いやすい仕組みを提供していた。進歩した印象が強く、Astroを使うことに決めた。  
+もう一つの長所は[Island](https://docs.astro.build/ko/concepts/islands/)構造で、VueやReact、Svelteなどで作ったコンポーネントをastroのページに追加できること。  
+長い間Vueばかり使ってきて、今はReactを試している。Reactを使いつつ、検証用にほかのフレームワークも差し込める点が魅力だった。  
+  
+  
+  
+Astroの使い方や使ってみた感想は、別の記事にまとめる予定だ。  
+  
+### CSS Library  
+  
+CSS Libraryには、最近React界隈で人気のShadcn-uiを使いたかった。  
+コンポーネントを見てみると、欲しいデザインとは少し違った。そこでawesome-shadcnというものを探してみると、  
+ユーザーがshadcn-uiを自由にカスタマイズして公開しているライブラリーが、かなりたくさんあった。  
+  
+  
+  
+その中で[Nyxb-UI](https://nyxbui.design/)を見つけた。アニメーション付きのコンポーネントが多く、ブログにぴったりだと思って採用した。  
+Shadn-cnをベースにしたライブラリーなので、レイアウトやドキュメントの形式はshadcnと同じで、  
+shadcnにあるコンポーネントは標準でそろい、さらに独自のコンポーネントも追加されていた。  
+  
+---  
+  
+>あとで調べると、magic uiをそのまま持ってきたようにも見える……。構成がほとんど同じだ。  
+>違いは、nyxb-uiにはshadncn/uiのコンポーネントも入っていることだろうか？  
+  
+  
+  
+その中から気に入ったコンポーネントをいくつか使い、画面を作ってみた。  
+  
+### 最初に作ったHeaderのデザイン  
+  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-header.webp" alt="blog-create1-header" />  
+  
+### 初期のメイン画面  
+  
+<ImageLoader src="/files/blog/web/astro/assets/blog-create1-main.webp" alt="blog-create1-main" />  
+  
+## 次の目標  
+  
+レイアウトとメイン画面をひとまず整えてみたが、どうもページルーティングが正常に動いていないように感じた。サンプルにあったdark、light themeの切り替えも少しおかしかった。  
+そこで、追加で開発する内容も含め、次の目標を決めた。  
+  
+- レイアウトを整える  
+  - Headerの不具合修正（Shadcn Tabsを使っているが、なぜか反応が遅い）  
+  - Footerを追加  
+  - レスポンシブ対応を整える  
+- ページルーティングの不具合を調べて解決する  
+- Homeに要素を追加  
+- Blogの一覧と詳細ページを追加  
+  
+  
+  
+  

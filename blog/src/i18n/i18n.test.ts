@@ -4,9 +4,37 @@ import { chromeMessages } from './chrome';
 import { commonMessages } from './common';
 import { contentMessages } from './content';
 import { createTranslator, getLocaleFromUrl, htmlLanguage, localizePath } from './index';
-import { getDiscussionTerm } from './locale';
+import { getContentLocale, getContentSlug, getDiscussionTerm, selectLocalizedEntries } from './locale';
 
 describe('site locale routing', () => {
+  it('selects one translation per public slug while retaining the localized render source', () => {
+    const originals = [
+      { id: 'diary/intro', filePath: 'blog/diary/intro.mdx', data: { title: '여행 일지' } },
+      { id: 'web/astro', filePath: 'blog/web/astro.mdx', data: { title: 'Astro' } },
+    ];
+    const translations = [
+      { id: 'en/diary/intro', filePath: 'blog/en/diary/intro.mdx', data: { title: 'Travel journal' } },
+      { id: 'jp/diary/intro', filePath: 'blog/jp/diary/intro.mdx', data: { title: '旅行記' } },
+    ];
+    const entries = [...originals, ...translations];
+    expect(selectLocalizedEntries(entries, 'ko')).toEqual(originals);
+    const english = selectLocalizedEntries(entries, 'en');
+    expect(english).toHaveLength(2);
+    expect(english[0]).toEqual({ ...translations[0], id: 'diary/intro' });
+    expect(english[1]).toEqual(originals[1]);
+    expect(selectLocalizedEntries(entries, 'jp')[0]).toEqual({ ...translations[1], id: 'diary/intro' });
+    expect(translations[0].id).toBe('en/diary/intro');
+    expect(getContentLocale('jp/web/astro')).toBe('jp');
+    expect(getContentLocale('web/astro')).toBe('ko');
+    expect(getContentSlug('en/web/astro')).toBe('web/astro');
+  });
+
+  it('allows a Korean translation of a non-Korean source without changing the root URL', () => {
+    const entries = [{ id: 'music/song', body: '日本語' }, { id: 'ko/music/song', body: '한국어' }, { id: 'en/music/song', body: 'English' }];
+    expect(selectLocalizedEntries(entries, 'ko')).toEqual([{ id: 'music/song', body: '한국어' }]);
+    expect(selectLocalizedEntries(entries, 'en')).toEqual([{ id: 'music/song', body: 'English' }]);
+  });
+
   it('keeps original English UI copy in ko, en, and jp while translating Korean prose', () => {
     const catalogs = { ...commonMessages, ...chromeMessages, ...aboutMessages, ...contentMessages };
     const originalEnglish = {
