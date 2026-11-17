@@ -2,7 +2,6 @@
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import dayjs from 'dayjs';
-import MermaidInit from '@/components/layouts/MermaidInit.astro';
 import MdLayout from '@/layouts/mdLayout.astro';
 import { getLocalizedCollection } from '@/utils/localizedContent';
 
@@ -33,5 +32,3 @@ const { Content } = await render(post);
 <MdLayout post={post.data} nav={{ prev, next }} url={`/blog/${post.id}`}>
   <Content />
 </MdLayout>
-
-<MermaidInit />

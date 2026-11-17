@@ -1,7 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
-import MermaidInit from '@/components/layouts/MermaidInit.astro';
 import ProjectLayout from '@/layouts/projectLayout.astro';
 import { getLocalizedCollection } from '@/utils/localizedContent';
 
@@ -27,5 +26,3 @@ const { Content } = await render(post);
 <ProjectLayout post={post.data} url={`/playground/${post.id}`}>
   <Content />
 </ProjectLayout>
-
-<MermaidInit />

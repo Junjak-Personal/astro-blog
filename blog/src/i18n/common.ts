@@ -17,5 +17,6 @@ export const commonMessages = {
   'site.not_found': { ko: 'Page Not Found', en: 'Page Not Found', jp: 'Page Not Found' },
   'site.back_home': { ko: 'Back to Home', en: 'Back to Home', jp: 'Back to Home' },
   'site.go_back': { ko: '이전 페이지로 돌아가기', en: 'Go back', jp: '前のページに戻る' },
+  'site.back_to_list': { ko: '목록으로 돌아가기', en: 'Back to list', jp: '一覧に戻る' },
   'site.back_command': { ko: '> cd ..', en: '> cd ..', jp: '> cd ..' },
 } satisfies MessageCatalog;

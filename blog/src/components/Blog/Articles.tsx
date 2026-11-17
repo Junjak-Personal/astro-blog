@@ -242,12 +242,12 @@ export default function Articles({ posts, categories, locale: initialLocale }: P
       <CategoryTags locale={locale} categories={categories} selectedCategory={selectedCategory} onSelectCategory={searchCategory} />
       <div>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="search-area">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="search-area mt-2 mb-4 grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_auto_auto] sm:gap-4">
             <FormField
               control={form.control}
               name="searchType"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-3 min-w-0 sm:col-span-1">
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -255,7 +255,7 @@ export default function Articles({ posts, categories, locale: initialLocale }: P
                     name={field.name}
                   >
                     <FormControl>
-                      <SelectTrigger data-testid="blog-search-type-select" aria-label={t('blog-search.submit', '검색')} className="w-[9rem] rounded-lg">
+                      <SelectTrigger data-testid="blog-search-type-select" aria-label={t('blog-search.submit', '검색')} className="w-full rounded-lg">
                         <SelectValue />
                       </SelectTrigger>
                     </FormControl>
@@ -273,28 +273,28 @@ export default function Articles({ posts, categories, locale: initialLocale }: P
               control={form.control}
               name="search"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="min-w-0">
                   <FormControl>
-                    <Input className="search-input rounded-lg" data-testid="blog-search-query-input" aria-label={t('blog-search.query', '검색어')} placeholder={t('blog-search.query', '검색어')} {...field} />
+                    <Input className="rounded-lg" data-testid="blog-search-query-input" aria-label={t('blog-search.query', '검색어')} placeholder={t('blog-search.query', '검색어')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button variant="outline" size="icon" type="submit" data-testid="blog-search-submit" aria-label={t('blog-search.submit', '검색')}>
+            <Button variant="outline" size="icon" className="min-h-10 min-w-10 shrink-0 rounded-lg p-2" type="submit" data-testid="blog-search-submit" aria-label={t('blog-search.submit', '검색')}>
               <Icon icon="tabler:search" className="h-5 w-5" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="reset-btn rounded-lg"
+              className="min-h-10 min-w-10 shrink-0 rounded-lg p-2"
               type="button"
               name="search-reset"
               data-testid="blog-search-reset"
               aria-label={t('blog-search.reset', '검색 초기화')}
               onClick={resetForm}
             >
-              <Icon icon="tabler:rotate" className="h-[1.5rem] w-[1.5rem] "></Icon>
+              <Icon icon="tabler:rotate" className="h-5 w-5" />
             </Button>
           </form>
         </Form>

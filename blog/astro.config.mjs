@@ -23,7 +23,7 @@ import remarkMath from 'remark-math';
 
 import rehypeImgAttrs from './src/plugins/rehypeImgAttrs.mjs';
 import remarkLyricsBlock from './src/plugins/remarkLyricsBlock.mjs';
-import remarkMermaidToHtml from './src/plugins/remarkMermaidToHtml.mjs';
+import remarkMermaidToHtml, { closeMermaidRenderer } from './src/plugins/remarkMermaidToHtml.mjs';
 
 // https://astro.build/config
 
@@ -66,7 +66,13 @@ export default defineConfig({
   }), expressiveCode({
     themes: ['kanagawa-dragon', 'catppuccin-latte'],
     plugins: [pluginCollapsibleSections(), pluginLineNumbers(), pluginColorChips()],
-  }), mdx({}), pagefind()],
+  }), mdx({}), pagefind(), {
+    name: 'static-mermaid',
+    hooks: {
+      'astro:build:done': closeMermaidRenderer,
+      'astro:server:done': closeMermaidRenderer,
+    },
+  }],
   image: {
     service: passthroughImageService(),
   },
@@ -74,7 +80,8 @@ export default defineConfig({
     // Astro 7 defaults to the satteri processor; keep the remark/rehype pipeline
     // since mermaid/math/lyrics/katex/img-attrs plugins depend on it. MDX inherits this.
     processor: unified({
-      remarkPlugins: [remarkMermaidToHtml, remarkMath, remarkLyricsBlock],
+      // Invalidate Astro's stored Markdown HTML when migrating the render format.
+      remarkPlugins: [[remarkMermaidToHtml, { renderVersion: 1 }], remarkMath, remarkLyricsBlock],
       rehypePlugins: [rehypeKatex, rehypeImgAttrs],
     }),
     syntaxHighlight: false,

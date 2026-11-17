@@ -1,0 +1,450 @@
+---
+import { geoArea, geoCentroid, geoMercator, geoPath } from 'd3';
+import geography from '@/data/japanPrefectures.geo.json';
+import { japanPrefectures, japanVisitRecords } from '@/data/japanPrefectureVisits';
+import { createTranslator, getLocaleFromUrl } from '@/i18n';
+import { japanVisitMessages } from '@/i18n/japanVisits';
+
+const locale = getLocaleFromUrl(Astro.url);
+const t = createTranslator(locale, japanVisitMessages);
+const id = `japan-visits-${crypto.randomUUID().slice(0, 8)}`;
+const visited = japanPrefectures.filter((prefecture) => prefecture.visited).length;
+const total = japanPrefectures.length;
+const percent = new Intl.NumberFormat(locale === 'jp' ? 'ja' : locale, { maximumFractionDigits: 1 }).format(visited / total * 100);
+const regions = [...new Set(japanPrefectures.map(({ region }) => region))];
+
+const features = geography.features.map((feature) => ({
+  type: 'Feature' as const,
+  properties: feature.properties,
+  geometry: { type: 'MultiPolygon' as const, coordinates: feature.geometry.coordinates },
+}));
+// Keep distant southern islands from shrinking the main map. Okinawa gets an inset.
+const mainland = features.filter(({ properties }) => properties.code !== '47').map((feature) => ({
+  ...feature,
+  geometry: {
+    ...feature.geometry,
+    coordinates: feature.geometry.coordinates.filter((coordinates) => geoCentroid({ type: 'Polygon', coordinates })[1] >= 29),
+  },
+}));
+const projection = geoMercator().fitExtent([[16, 16], [604, 544]], { type: 'FeatureCollection', features: mainland });
+const mainlandPath = geoPath(projection).digits(1);
+const okinawa = features.find(({ properties }) => properties.code === '47');
+if (!okinawa || features.length !== total)
+  throw new Error('Japan map must contain all 47 prefectures, including Okinawa.');
+// A prefecture-wide fit makes Okinawa Island disappear between distant islands.
+// Enlarge the largest island and disclose the inset's scope in the caption.
+const okinawaMainIsland = okinawa.geometry.coordinates.toSorted((left, right) =>
+  geoArea({ type: 'Polygon', coordinates: right }) - geoArea({ type: 'Polygon', coordinates: left }),
+)[0];
+if (!okinawaMainIsland)
+  throw new Error('Okinawa Island geometry is required for the map inset.');
+const insetGeometry = { type: 'Polygon' as const, coordinates: okinawaMainIsland };
+const insetPath = geoPath(geoMercator().fitExtent([[142, 180], [240, 316]], insetGeometry)).digits(1);
+
+const prefectures = japanPrefectures.map((prefecture) => {
+  const record = japanVisitRecords[prefecture.code];
+  if (!prefecture.visited && record)
+    throw new Error(`Visit record conflicts with unvisited prefecture ${prefecture.code}.`);
+  const count = prefecture.visited ? record?.visitCount ?? null : 0;
+  const feature = mainland.find(({ properties }) => properties.code === prefecture.code);
+  return {
+    ...prefecture,
+    label: t(`japan-prefecture.${prefecture.code}`, prefecture.name.ko),
+    status: prefecture.visited ? 'visited' : 'unvisited',
+    statusLabel: prefecture.visited ? t('japan-visits.visited', '방문') : t('japan-visits.unvisited', '미방문'),
+    countLabel: count === null ? t('japan-visits.pending', '정리 예정') : t('japan-visits.count_value', '{count}회', { count }),
+    cities: record?.cities[locale] ?? [],
+    activities: record?.activities[locale] ?? [],
+    pending: prefecture.visited && (count === null || !record?.cities[locale].length || !record.activities[locale].length),
+    blank: prefecture.visited ? t('japan-visits.pending', '정리 예정') : t('japan-visits.none', '기록 없음'),
+    path: prefecture.code === '47' ? insetPath(insetGeometry) : feature ? mainlandPath(feature) : null,
+  };
+});
+if (prefectures.some(({ path }) => !path))
+  throw new Error('Every prefecture must have a visible map path.');
+---
+
+<japan-prefecture-visits
+  class="japan-visits my-8 block"
+  data-testid="japan-visits-map-view"
+  data-filter="all"
+  data-showing={t('japan-visits.showing', '{count}곳 표시 중')}
+  style={`--unvisited-fill: url(#${id}-hatch)`}
+>
+  <div class="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2">
+    <p class="visit-summary font-semibold text-foreground">
+      {t('japan-visits.summary', '47곳 중 {count}곳 방문', { count: visited })}
+      <span class="ml-2 text-sm font-normal tabular-nums text-muted-foreground">{percent}%</span>
+    </p>
+    <p class="text-sm text-muted-foreground">{t('japan-visits.remaining', '아직 가보지 않은 곳 {count}', { count: total - visited })}</p>
+  </div>
+  <progress class="visit-progress mt-3 mb-6 w-full" value={visited} max={total} aria-label={t('japan-visits.progress', '도도부현 방문율')}>{percent}%</progress>
+
+  <div class="mb-4 flex flex-wrap items-center justify-end gap-2" role="group" aria-label={t('japan-visits.filter', '방문 여부로 보기')}>
+    {[
+      { value: 'unvisited', label: t('japan-visits.unvisited', '미방문'), count: total - visited },
+      { value: 'visited', label: t('japan-visits.visited', '방문'), count: visited },
+      { value: 'all', label: t('japan-visits.all', '전체'), count: total },
+    ].map((filter) => (
+      <button
+        type="button"
+        class="filter-button rounded-full border border-border bg-background px-3 py-2 text-sm"
+        data-filter-value={filter.value}
+        data-testid={`japan-visits-filter-${filter.value}`}
+        aria-pressed={filter.value === 'all'}
+        disabled
+      >
+        {filter.label}<span class="ml-1.5 tabular-nums">{filter.count}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="visit-explorer grid overflow-hidden rounded-2xl border border-border lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+    <figure class="visit-map relative min-w-0">
+      <div class="map-hover pointer-events-none absolute top-4 left-4 text-sm" data-map-hover aria-hidden="true"></div>
+      <div class="map-canvas relative">
+        <svg
+          class="block h-auto w-full"
+          viewBox="0 0 620 560"
+          role="group"
+          aria-labelledby={`${id}-title`}
+          aria-describedby={`${id}-description`}
+          data-testid="japan-visits-map-svg"
+        >
+          <title id={`${id}-title`}>{t('japan-visits.title', '나의 일본 여행 지도')}</title>
+          <desc id={`${id}-description`}>{t('japan-visits.map_description', '방문 여부를 표시한 일본 지도', { visited, unvisited: total - visited })}</desc>
+          <defs>
+            <pattern id={`${id}-hatch`} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+              <rect width="5" height="5" class="unvisited-base" />
+              <path d="M0 0V5" class="unvisited-hatch" />
+            </pattern>
+            {prefectures.map((prefecture) => (
+              <path id={`${id}-shape-${prefecture.code}`} d={prefecture.path} vector-effect="non-scaling-stroke" />
+            ))}
+          </defs>
+          <rect x="20" y="166" width="236" height="164" rx="8" class="inset-boundary" aria-hidden="true" />
+          {prefectures.map((prefecture) => (
+            <a
+              href={`#${id}-record-${prefecture.code}`}
+              class="prefecture-shape"
+              data-select={prefecture.code}
+              data-status={prefecture.status}
+              data-label={`${prefecture.label} · ${prefecture.statusLabel}`}
+              data-testid={`japan-visits-prefecture-select-${prefecture.code}`}
+              aria-label={`${prefecture.label} · ${prefecture.statusLabel}`}
+            >
+              {prefecture.code === '47' && <rect class="inset-hitbox" x="20" y="166" width="236" height="164" rx="8" fill="transparent" aria-hidden="true" />}
+              <use href={`#${id}-shape-${prefecture.code}`} class="prefecture-land" />
+              <use href={`#${id}-shape-${prefecture.code}`} class="prefecture-focus-halo" aria-hidden="true" />
+              <use href={`#${id}-shape-${prefecture.code}`} class="prefecture-focus-outline" aria-hidden="true" />
+            </a>
+          ))}
+        </svg>
+        <span class="inset-label pointer-events-none absolute leading-snug text-muted-foreground" aria-hidden="true">
+          <span class="block">{t('japan-prefecture.47', '오키나와')}</span>
+          <span class="block">{t('japan-visits.inset_scale', '본섬 확대')}</span>
+        </span>
+      </div>
+      <figcaption class="px-4 pb-4 text-xs leading-relaxed text-muted-foreground">
+        <span class="mb-2 flex flex-wrap gap-x-4 gap-y-1">
+          <span class="inline-flex items-center gap-1.5"><span class="legend-dot legend-visited" aria-hidden="true"></span>{t('japan-visits.visited', '방문')}</span>
+          <span class="inline-flex items-center gap-1.5"><span class="legend-dot legend-unvisited" aria-hidden="true"></span>{t('japan-visits.unvisited', '미방문')}</span>
+        </span>
+        {t('japan-visits.map_note', '경계를 단순화하고 일부 섬은 생략했습니다. 오키나와는 본섬을 확대해 표시했습니다.')}
+      </figcaption>
+    </figure>
+
+    <div class="visit-detail min-w-0 border-t border-border bg-background p-5 lg:border-t-0 lg:border-l lg:p-6">
+      <label for={`${id}-select`} class="mb-2 block text-xs font-medium text-muted-foreground">{t('japan-visits.choose', '현 선택')}</label>
+      <select id={`${id}-select`} class="prefecture-select w-full rounded-lg border border-input bg-background p-2.5 text-sm" data-testid="japan-visits-prefecture-select" disabled>
+        <option value="">{t('japan-visits.choose_placeholder', '궁금한 도도부현을 골라보세요')}</option>
+        {regions.map((region) => (
+          <optgroup label={t(`japan-region.${region}`, region)}>
+            {prefectures.filter((prefecture) => prefecture.region === region).map((prefecture) => (
+              <option value={prefecture.code} data-status={prefecture.status}>{prefecture.label}</option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+      <div class="mt-7" data-prompt>
+        <h3 class="m-0! text-xl! font-semibold">{t('japan-visits.prompt_title', '어디부터 볼까요?')}</h3>
+        <p class="mt-3! text-sm leading-relaxed text-muted-foreground">{t('japan-visits.prompt', '지도나 선택 목록에서 한 곳을 골라보세요.')}</p>
+      </div>
+      <div data-records>
+        {prefectures.map((prefecture) => (
+          <article class="prefecture-record mt-6" data-record={prefecture.code} hidden>
+            <p class="text-xs font-medium text-muted-foreground">{t(`japan-region.${prefecture.region}`, prefecture.region)} · {prefecture.statusLabel}</p>
+            <h3 class="mt-2! mb-0! text-2xl! font-semibold" data-record-title>{prefecture.label}</h3>
+            {locale !== 'jp' && <p class="mt-1! text-sm text-muted-foreground" lang="ja">{prefecture.name.jp}</p>}
+            <dl class="record-fields mt-6! space-y-5 text-sm">
+              <div>
+                <dt class="text-xs text-muted-foreground">{t('japan-visits.count', '방문 횟수')}</dt>
+                <dd class="mt-1 font-medium" data-record-count>{prefecture.countLabel}</dd>
+              </div>
+              <div>
+                <dt class="text-xs text-muted-foreground">{t('japan-visits.cities', '주요 도시')}</dt>
+                <dd class="mt-1">{prefecture.cities.length ? prefecture.cities.join(', ') : prefecture.blank}</dd>
+              </div>
+              <div>
+                <dt class="text-xs text-muted-foreground">{t('japan-visits.activities', '했던 일')}</dt>
+                <dd class="mt-1">
+                  {prefecture.activities.length ? <ul>{prefecture.activities.map((activity) => <li>{activity}</li>)}</ul> : prefecture.blank}
+                </dd>
+              </div>
+            </dl>
+            {(prefecture.pending || !prefecture.visited) && (
+              <p class="mt-6! border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
+                {prefecture.visited ? t('japan-visits.record_pending', '방문 기록을 정리하고 있습니다.') : t('japan-visits.not_yet', '아직 가보지 않은 곳입니다.')}
+              </p>
+            )}
+          </article>
+        ))}
+      </div>
+    </div>
+  </div>
+  <p class="mt-3! text-xs text-muted-foreground">{t('japan-visits.hint', '지도에서 현을 누르거나 선택 목록에서 골라보세요.')}</p>
+  <p class="sr-only" role="status" data-announcement></p>
+
+  <h2 class="mt-12! mb-8!">{t('japan-visits.records', '현별 기록')}</h2>
+  <p class="mb-5! text-sm text-muted-foreground">{t('japan-visits.records_hint', '지역을 펼치면 전체 기록을 볼 수 있습니다.')}</p>
+  <div class="region-records grid gap-4">
+    {regions.map((region) => {
+      const entries = prefectures.filter((prefecture) => prefecture.region === region)
+        .toSorted((left, right) => Number(right.visited) - Number(left.visited));
+      return (
+        <details class="region-record overflow-hidden rounded-xl border border-border bg-background" data-region={region}>
+          <summary class="flex min-h-12 cursor-pointer items-center justify-between gap-3 px-4 py-4 text-sm font-medium" data-testid={`japan-visits-region-expand-${region}`}>
+            <span class="region-name">{t(`japan-region.${region}`, region)}</span>
+            <span class="text-xs font-normal tabular-nums text-muted-foreground">{t('japan-visits.region_count', '{visited}/{total} 방문', { visited: entries.filter(({ visited }) => visited).length, total: entries.length })}</span>
+          </summary>
+          <div class="record-table overflow-x-auto px-4 pt-1 pb-4" role="region" aria-label={t(`japan-region.${region}`, region)} tabindex="0" data-testid={`japan-visits-table-scroll-${region}`}>
+            <table>
+              <caption class="sr-only">{t(`japan-region.${region}`, region)} · {t('japan-visits.records', '현별 기록')}</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{t('japan-visits.prefecture', '도도부현')}</th>
+                  <th scope="col">{t('japan-visits.count', '방문 횟수')}</th>
+                  <th scope="col">{t('japan-visits.cities', '주요 도시')}</th>
+                  <th scope="col">{t('japan-visits.activities', '했던 일')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((prefecture) => (
+                  <tr id={`${id}-record-${prefecture.code}`} data-row data-status={prefecture.status}>
+                    <th scope="row">
+                      <a href={`#${id}-select`} class="record-link inline-block rounded-md border border-border px-2 py-1.5" data-select={prefecture.code} data-status={prefecture.status} data-testid={`japan-visits-record-select-${prefecture.code}`}>{prefecture.label}</a>
+                      <span class="mt-1 block text-xs font-normal text-muted-foreground">{prefecture.statusLabel}</span>
+                    </th>
+                    <td>{prefecture.countLabel}</td>
+                    <td>{prefecture.cities.length ? prefecture.cities.join(', ') : prefecture.blank}</td>
+                    <td>{prefecture.activities.length ? prefecture.activities.join(' · ') : prefecture.blank}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p class="px-4 pt-3 pb-4 text-sm text-muted-foreground" data-empty hidden>{t('japan-visits.empty', '이 지역에는 선택한 조건에 맞는 현이 없습니다.')}</p>
+        </details>
+      );
+    })}
+  </div>
+  <p class="mt-6! text-xs leading-relaxed text-muted-foreground">
+    <a href="https://github.com/smartnews-smri/japan-topography" target="_blank" rel="noreferrer" data-testid="japan-visits-source-open">{t('japan-visits.source', '지도 데이터: 일본 국토교통성 「国土数値情報（行政区域データ）」를 가공한 SmartNews 자료를 재가공.')}</a>
+  </p>
+</japan-prefecture-visits>
+
+<script>
+  class JapanPrefectureVisits extends HTMLElement {
+    connectedCallback() {
+      if (this.dataset.ready)
+        return;
+      this.dataset.ready = 'true';
+
+      const select = this.querySelector<HTMLSelectElement>('select');
+      const announcement = this.querySelector<HTMLElement>('[data-announcement]');
+      const hover = this.querySelector<HTMLElement>('[data-map-hover]');
+      const filters = this.querySelectorAll<HTMLButtonElement>('[data-filter-value]');
+      const shapes = this.querySelectorAll<SVGAElement>('.prefecture-shape');
+      const records = this.querySelectorAll<HTMLElement>('[data-record]');
+      const prompt = this.querySelector<HTMLElement>('[data-prompt]');
+      if (!select || !announcement || !hover || !prompt)
+        return;
+
+      const showRecord = (code: string) => {
+        const record = [...records].find((entry) => entry.dataset.record === code);
+        select.value = record ? code : '';
+        prompt.hidden = Boolean(record);
+        records.forEach((entry) => {
+          entry.hidden = entry !== record;
+        });
+        shapes.forEach((shape) => {
+          if (shape.dataset.select === code)
+            shape.setAttribute('aria-current', 'true');
+          else
+            shape.removeAttribute('aria-current');
+        });
+        if (record)
+          announcement.textContent = `${record.querySelector('[data-record-title]')?.textContent} · ${record.querySelector('[data-record-count]')?.textContent}`;
+      };
+
+      const applyFilter = (value: string) => {
+        this.dataset.filter = value;
+        let visible = 0;
+        shapes.forEach((shape) => {
+          const matches = value === 'all' || shape.dataset.status === value;
+          shape.classList.toggle('is-muted', !matches);
+          shape.setAttribute('tabindex', matches ? '0' : '-1');
+          shape.setAttribute('aria-disabled', String(!matches));
+          if (matches)
+            visible++;
+        });
+        filters.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filterValue === value)));
+        for (const option of select.options) {
+          const excluded = Boolean(option.value) && value !== 'all' && option.dataset.status !== value;
+          option.hidden = excluded;
+          option.disabled = excluded;
+        }
+        this.querySelectorAll<HTMLElement>('[data-row]').forEach((row) => {
+          row.hidden = value !== 'all' && row.dataset.status !== value;
+        });
+        this.querySelectorAll<HTMLElement>('[data-region]').forEach((region) => {
+          const hasRows = [...region.querySelectorAll<HTMLElement>('[data-row]')].some((row) => !row.hidden);
+          const table = region.querySelector<HTMLElement>('[data-testid^="japan-visits-table"]');
+          const empty = region.querySelector<HTMLElement>('[data-empty]');
+          if (table)
+            table.hidden = !hasRows;
+          if (empty)
+            empty.hidden = hasRows;
+        });
+        if (select.selectedOptions[0]?.disabled)
+          showRecord('');
+        hover.textContent = '';
+        announcement.textContent = this.dataset.showing?.replace('{count}', String(visible)) ?? '';
+      };
+
+      this.addEventListener('click', (event: MouseEvent) => {
+        if (!(event.target instanceof Element))
+          return;
+        const filter = event.target.closest<HTMLButtonElement>('[data-filter-value]');
+        if (filter) {
+          applyFilter(filter.dataset.filterValue ?? 'all');
+          return;
+        }
+        const target = event.target.closest<HTMLElement | SVGAElement>('[data-select]');
+        if (!target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+          return;
+        event.preventDefault();
+        if (target.getAttribute('aria-disabled') === 'true')
+          return;
+        showRecord(target.dataset.select ?? '');
+        if (target.classList.contains('record-link')) {
+          select.scrollIntoView({ block: 'center', behavior: 'instant' });
+          select.focus({ preventScroll: true });
+        }
+      });
+      select.addEventListener('change', () => showRecord(select.value));
+      const showHover = (target: EventTarget | null) => {
+        if (!(target instanceof Element))
+          return;
+        const shape = target.closest<SVGAElement>('.prefecture-shape');
+        if (shape && shape.getAttribute('aria-disabled') !== 'true')
+          hover.textContent = shape.dataset.label ?? '';
+      };
+      this.addEventListener('pointerover', (event: PointerEvent) => showHover(event.target));
+      this.addEventListener('focusin', (event: FocusEvent) => showHover(event.target));
+      this.querySelector('svg')?.addEventListener('pointerleave', () => {
+        hover.textContent = '';
+      });
+      filters.forEach((button) => {
+        button.disabled = false;
+      });
+      select.disabled = false;
+    }
+  }
+
+  if (!customElements.get('japan-prefecture-visits'))
+    customElements.define('japan-prefecture-visits', JapanPrefectureVisits);
+</script>
+
+<style>
+  .japan-visits {
+    --visited-color: color-mix(in oklab, #12b981 45%, #737373);
+    --unvisited-color: oklch(82% 0 0);
+    --hatch-color: oklch(58% 0 0);
+    --unvisited-outline: oklch(53% 0 0);
+    --sea-color: oklch(97.5% 0 0);
+    --inset-color: oklch(95% 0 0);
+  }
+
+  :global(.dark) .japan-visits {
+    --unvisited-color: oklch(50% 0 0);
+    --hatch-color: oklch(66% 0 0);
+    --unvisited-outline: oklch(66% 0 0);
+    --sea-color: oklch(18% 0 0);
+    --inset-color: oklch(22% 0 0);
+  }
+
+  .japan-visits p, .japan-visits figure, .japan-visits dl, .japan-visits dd { margin: 0; }
+  .japan-visits h2, .japan-visits h3 { border: 0; padding: 0; }
+  .japan-visits h3 { line-height: 1.5; }
+  .japan-visits [hidden] { display: none !important; }
+  .visit-summary { font-size: 1.1rem; }
+  .visit-progress { display: block; height: 0.3rem; appearance: none; border: 0; border-radius: 1rem; overflow: hidden; background: var(--unvisited-color); }
+  .visit-progress::-webkit-progress-bar { background: var(--unvisited-color); }
+  .visit-progress::-webkit-progress-value { background: var(--visited-color); }
+  .visit-progress::-moz-progress-bar { background: var(--visited-color); }
+  .filter-button { cursor: pointer; transition: background-color 140ms ease-out; }
+  .filter-button[aria-pressed='true'] { background: hsl(var(--foreground)); color: hsl(var(--background)); border-color: hsl(var(--foreground)); }
+  .filter-button:disabled, .prefecture-select:disabled { cursor: wait; }
+  .visit-map { background: var(--sea-color); }
+  .map-hover { min-height: 1.5rem; color: hsl(var(--foreground)); font-weight: 600; }
+  .prefecture-shape { cursor: pointer; }
+  .prefecture-land { fill: var(--visited-color); stroke: var(--sea-color); stroke-width: 0.8; transition: opacity 140ms ease-out; }
+  .prefecture-shape[data-status='unvisited'] .prefecture-land { fill: var(--unvisited-fill); stroke: var(--unvisited-outline); }
+  .prefecture-shape:hover .prefecture-land { stroke: hsl(var(--foreground)); stroke-width: 1.4; }
+  .prefecture-focus-halo, .prefecture-focus-outline { display: none; fill: none; pointer-events: none; }
+  .prefecture-focus-halo { stroke: var(--sea-color); stroke-width: 6; }
+  .prefecture-focus-outline { stroke: hsl(var(--foreground)); stroke-width: 2.5; }
+  .prefecture-shape:is(:focus-visible, [aria-current='true']) :is(.prefecture-focus-halo, .prefecture-focus-outline) { display: inline; }
+  /* The geographic contour replaces the rectangular SVG link focus ring. */
+  .japan-visits .prefecture-shape:focus { outline: none; }
+  .prefecture-shape.is-muted { pointer-events: none; }
+  .prefecture-shape.is-muted .prefecture-land { opacity: 0.15; }
+  .unvisited-base { fill: var(--unvisited-color); }
+  .unvisited-hatch { stroke: var(--hatch-color); stroke-width: 1; }
+  .inset-boundary { fill: var(--inset-color); stroke: var(--unvisited-outline); stroke-width: 0.8; }
+  .inset-label { top: 32%; left: 5.1%; width: 17%; font-size: var(--type-caption, 0.8125rem); }
+  .inset-label span:first-child { color: hsl(var(--foreground)); font-weight: 600; }
+  .legend-dot { width: 0.7rem; height: 0.7rem; display: inline-block; border-radius: 2px; }
+  .legend-visited { background: var(--visited-color); }
+  .legend-unvisited { background: repeating-linear-gradient(125deg, var(--unvisited-color) 0 3px, var(--hatch-color) 3px 4px); }
+  .record-fields dd { margin-top: 0.35rem; overflow-wrap: anywhere; }
+  .record-fields ul { margin: 0; padding-left: 1.1rem; }
+  .region-record summary { list-style: none; border-bottom: 1px solid transparent; }
+  .region-record[open] > summary { background: hsl(var(--muted) / 0.65); border-bottom-color: hsl(var(--border)); }
+  .region-record summary::-webkit-details-marker { display: none; }
+  .region-name::before { content: '+'; display: inline-block; width: 1.5rem; color: hsl(var(--muted-foreground)); }
+  .region-record[open] .region-name::before { content: '−'; }
+  .record-table table { width: 100%; min-width: 34rem; margin: 0; font-size: 0.8rem; line-height: 1.6; border-collapse: collapse; }
+  .record-table th, .record-table td { padding: 0.75rem 0.5rem; text-align: left; vertical-align: top; border: 0; }
+  .record-table thead th { font-weight: 500; color: hsl(var(--muted-foreground)); background: transparent; border-bottom: 1px solid hsl(var(--border)); }
+  .record-table tbody tr { background: transparent; }
+  .record-table tbody tr:nth-child(even) { background: hsl(var(--muted) / 0.35); }
+  .record-table tbody tr[data-status='unvisited'] { color: hsl(var(--muted-foreground)); opacity: 0.5; }
+  .record-table tbody tr[data-status='unvisited'] .record-link { color: inherit; font-weight: 400; }
+  .record-table tbody tr[data-status='unvisited']:is(:hover, :focus-within) { opacity: 1; }
+  .record-table th:first-child { width: 25%; }
+  .record-link { color: hsl(var(--foreground)); text-decoration: none; }
+  .japan-visits :is(button, select, summary, a, [tabindex]):not(.prefecture-shape):focus-visible { outline: 2px solid hsl(var(--foreground)); outline-offset: 3px; }
+  .japan-visits .region-record > :is(summary, .record-table):focus-visible { outline-offset: -4px; }
+  @media (pointer: coarse) {
+    .filter-button, .prefecture-select, .record-link { min-height: 2.75rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .filter-button, .prefecture-land { transition: none; }
+  }
+  @media (forced-colors: active) {
+    .prefecture-focus-halo { stroke: Canvas; }
+    .prefecture-focus-outline { stroke: Highlight; }
+  }
+</style>

@@ -50,6 +50,20 @@ for (const language of languages) {
     await expect(input).toHaveValue('');
     await expect(page).not.toHaveURL(/[?&]q=/);
   });
+
+  test(`${language.locale}: cd command returns to its section list after entering from another section`, async ({ page }) => {
+    for (const section of [
+      { detail: '/blog/music/lovememore/', list: '/blog/', title: 'Blog' },
+      { detail: '/project/memo/', list: '/project/', title: 'Project' },
+      { detail: '/playground/sake-slide1/', list: '/playground/', title: 'Playground' },
+    ]) {
+      await page.goto(`${language.path}/about/`);
+      await page.goto(`${language.path}${section.detail}`);
+      await page.getByTestId('article-back-button').click();
+      await expect(page).toHaveURL(`${language.path}${section.list}`);
+      await expect(page.locator('h1')).toHaveText(section.title);
+    }
+  });
 }
 
 test('language selection preserves the page, query, hash, and subsequent navigation', async ({ page }) => {
@@ -89,7 +103,7 @@ test('each locale lists one translated version per post and publishes a matching
     const feed = await request.get(`${language.path}/rss.xml`);
     expect(feed.status()).toBe(200);
     const xml = await feed.text();
-    expect(xml.match(/<item>/g)).toHaveLength(42);
+    expect(xml.match(/<item>/g)).toHaveLength(43);
     expect(xml).toContain(`<language>${language.html}</language>`);
     expect(xml).toContain(`${language.path}/blog/`);
     expect(xml).not.toMatch(/\/blog\/(?:en|jp|ko)\//);

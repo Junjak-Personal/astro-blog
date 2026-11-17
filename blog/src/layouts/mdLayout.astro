@@ -101,16 +101,15 @@ const t = createTranslator(locale);
       />
 
       <div class="markdown-content-wrapper">
-        <button
-          type="button"
+        <a
           id="go-back"
           data-testid="article-back-button"
-          aria-label={t('site.go_back', 'Go back')}
-          class="border border-current/20 rounded px-2 py-1 text-lg font-bold text-opacity-80 text-slate-600 dark:text-gray-300 hover:text-slate-900 dark:hover:text-gray-50 mb-2 w-fit cursor-pointer"
-          onclick="history.go((window._mdEntryIndex ?? 0) - (history.state?.index ?? 0) - 1)"
+          href={localizePath('/blog/', locale)}
+          aria-label={`${t('site.back_command', '> cd ..')} (${t('site.back_to_list', 'Back to list')})`}
+          class="mb-2 inline-block w-fit py-1 text-lg font-bold text-muted-foreground transition-colors hover:text-foreground hover:underline focus-visible:outline-offset-4"
         >
           {t('site.back_command', '> cd ..')}
-        </button>
+        </a>
         <div class="front-matter-info">
           <BlogFrontmatter locale={locale} frontmatter={post} client:visible />
         </div>
@@ -149,8 +148,6 @@ const t = createTranslator(locale);
 </html>
 
 <script is:inline>
-window._mdEntryIndex = window.history.state?.index ?? 0;
-
 (function scrollToSection() {
   const params = new URLSearchParams(window.location.search);
   const section = Number.parseInt(params.get('section'), 10);

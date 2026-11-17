@@ -1,28 +1,9 @@
 @use '../variables' as *;
 
 .search-area {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
   width: calc($px400 - 8rem);
   @media screen and (max-width: 768px) {
     width: calc($px400 - 4rem);
-  }
-  //button {
-  //  width: 1.5rem !important;
-  //  height: 1.5rem !important;
-  //}
-
-  .search-input {
-    width: calc($px400 - 21.5rem);
-    @media screen and (max-width: 768px) {
-      width: calc($px400 - 17.5rem);
-    }
-  }
-
-  .reset-btn {
-    width: 40px !important;
-    height: 40px !important;
   }
 }
 
@@ -497,11 +478,30 @@
   color: var(--color-link);
 }
 
-.language-mermaid {
-  background: unset !important;
+.mermaid-diagram {
+  margin-block: 1rem;
+  overflow-x: auto;
+
+  .mermaid-variant--dark {
+    display: none;
+  }
 
   svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
     border-radius: 0.5rem;
+  }
+}
+
+.dark .mermaid-diagram {
+  .mermaid-variant--light {
+    display: none;
+  }
+
+  .mermaid-variant--dark {
+    display: block;
   }
 }
 
