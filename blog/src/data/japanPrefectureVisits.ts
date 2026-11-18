@@ -42,14 +42,14 @@ const prefectureRows = [
   ['37', '香川県', '가가와', 'Kagawa', 'shikoku', true],
   ['38', '愛媛県', '에히메', 'Ehime', 'shikoku', true],
   ['39', '高知県', '고치', 'Kochi', 'shikoku', true],
-  ['40', '福岡県', '후쿠오카', 'Fukuoka', 'kyushu-okinawa', true],
-  ['41', '佐賀県', '사가', 'Saga', 'kyushu-okinawa', true],
-  ['42', '長崎県', '나가사키', 'Nagasaki', 'kyushu-okinawa', true],
-  ['43', '熊本県', '구마모토', 'Kumamoto', 'kyushu-okinawa', true],
-  ['44', '大分県', '오이타', 'Oita', 'kyushu-okinawa', true],
-  ['45', '宮崎県', '미야자키', 'Miyazaki', 'kyushu-okinawa', false],
-  ['46', '鹿児島県', '가고시마', 'Kagoshima', 'kyushu-okinawa', false],
-  ['47', '沖縄県', '오키나와', 'Okinawa', 'kyushu-okinawa', false],
+  ['40', '福岡県', '후쿠오카', 'Fukuoka', 'kyushu', true],
+  ['41', '佐賀県', '사가', 'Saga', 'kyushu', true],
+  ['42', '長崎県', '나가사키', 'Nagasaki', 'kyushu', true],
+  ['43', '熊本県', '구마모토', 'Kumamoto', 'kyushu', true],
+  ['44', '大分県', '오이타', 'Oita', 'kyushu', true],
+  ['45', '宮崎県', '미야자키', 'Miyazaki', 'kyushu', false],
+  ['46', '鹿児島県', '가고시마', 'Kagoshima', 'kyushu', false],
+  ['47', '沖縄県', '오키나와', 'Okinawa', 'okinawa', false],
 ] as const;
 
 export const japanPrefectures = prefectureRows.map(([code, jp, ko, en, region, visited]) => ({
@@ -87,15 +87,15 @@ export const japanVisitRecords = z.partialRecord(
     activities: {
       ko: [
         '1회차 · 친구와 자유여행: 오타루, 삿포로, 치토세(공항), 노보리베츠.',
-        '2회차 · 가족 패키지여행: 삿포로, 아사히카와, 오타루, 비에이, 「청의폭포」(정확한 명칭 미확인), 소운쿄, 닝구르테라스. 세부 일정은 기억을 바탕으로 정리.',
+        '2회차 · 가족 패키지여행: 삿포로, 아사히카와, 오타루, 비에이(시로가네 청의호수·아오이케), 소운쿄(은하폭포), 닝구르테라스.\n세부 일정은 기억을 바탕으로 정리.',
       ],
       en: [
         '1st visit · Independent trip with a friend: Otaru, Sapporo, Chitose (airport), and Noboribetsu.',
-        '2nd visit · Family package tour: Sapporo, Asahikawa, Otaru, Biei, a place recalled as 「Blue Falls」 (exact name unconfirmed), Sounkyo, and Ningle Terrace. This itinerary is reconstructed from memory.',
+        '2nd visit · Family package tour: Sapporo, Asahikawa, Otaru, Biei (Shirogane Blue Pond), Sounkyo (Ginga Falls), and Ningle Terrace.\nThis itinerary is reconstructed from memory.',
       ],
       jp: [
         '1回目・友人との個人旅行：小樽、札幌、千歳（空港）、登別。',
-        '2回目・家族とのパッケージツアー：札幌、旭川、小樽、美瑛、「青の滝」と記憶している場所（正式名称は未確認）、層雲峡、ニングルテラス。詳しい行程は記憶をもとに整理。',
+        '2回目・家族とのパッケージツアー：札幌、旭川、小樽、美瑛（白金青い池）、層雲峡（銀河の滝）、ニングルテラス。\n詳しい行程は記憶をもとに整理。',
       ],
     },
   },
@@ -108,9 +108,9 @@ export const japanVisitRecords = z.partialRecord(
       jp: ['青森', '深浦町', '弘前'],
     },
     activities: {
-      ko: ['1회차 · 일본 한 달 여행. 후카우라마치의 부로후시 온천(黄金崎不老ふ死温泉) 방문.'],
-      en: ['1st visit · Month-long trip around Japan. Visited Koganezaki Furofushi Onsen in Fukaura.'],
-      jp: ['1回目・日本を1か月巡る旅。深浦町の黄金崎不老ふ死温泉を訪問。'],
+      ko: ['1회차 · 일본 한 달 여행.\n후카우라마치의 부로후시 온천(黄金崎不老ふ死温泉) 방문.'],
+      en: ['1st visit · Month-long trip around Japan.\nVisited Koganezaki Furofushi Onsen in Fukaura.'],
+      jp: ['1回目・日本を1か月巡る旅。\n深浦町の黄金崎不老ふ死温泉を訪問。'],
     },
   },
   '04': {
@@ -121,9 +121,9 @@ export const japanVisitRecords = z.partialRecord(
       jp: ['仙台', '松島'],
     },
     activities: {
-      ko: ['1회차 · 일본 한 달 여행. 미야기쿄 증류소 방문.'],
-      en: ['1st visit · Month-long trip around Japan. Visited Miyagikyo Distillery.'],
-      jp: ['1回目・日本を1か月巡る旅。宮城峡蒸溜所を訪問。'],
+      ko: ['1회차 · 일본 한 달 여행.\n미야기쿄 증류소 방문.'],
+      en: ['1st visit · Month-long trip around Japan.\nVisited Miyagikyo Distillery.'],
+      jp: ['1回目・日本を1か月巡る旅。\n宮城峡蒸溜所を訪問。'],
     },
   },
   '05': {
@@ -134,9 +134,9 @@ export const japanVisitRecords = z.partialRecord(
       jp: ['由利本荘市', '秋田市', '角館'],
     },
     activities: {
-      ko: ['1회차 · 일본 한 달 여행. 유키노보샤(雪の茅舎) 양조장을 목적으로 유리혼조시 방문.'],
-      en: ['1st visit · Month-long trip around Japan. Went to Yurihonjo for the Yukinobosha brewery.'],
-      jp: ['1回目・日本を1か月巡る旅。雪の茅舎の酒蔵を目当てに由利本荘市を訪問。'],
+      ko: ['1회차 · 일본 한 달 여행.\n유키노보샤(雪の茅舎) 양조장을 목적으로 유리혼조시 방문.'],
+      en: ['1st visit · Month-long trip around Japan.\nWent to Yurihonjo for the Yukinobosha brewery.'],
+      jp: ['1回目・日本を1か月巡る旅。\n雪の茅舎の酒蔵を目当てに由利本荘市を訪問。'],
     },
   },
 });

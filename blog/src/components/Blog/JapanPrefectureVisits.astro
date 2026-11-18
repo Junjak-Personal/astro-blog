@@ -12,6 +12,7 @@ const visited = japanPrefectures.filter((prefecture) => prefecture.visited).leng
 const total = japanPrefectures.length;
 const percent = new Intl.NumberFormat(locale === 'jp' ? 'ja' : locale, { maximumFractionDigits: 1 }).format(visited / total * 100);
 const regions = [...new Set(japanPrefectures.map(({ region }) => region))];
+const mapSize = { width: 620, height: 560 };
 
 const features = geography.features.map((feature) => ({
   type: 'Feature' as const,
@@ -26,20 +27,28 @@ const mainland = features.filter(({ properties }) => properties.code !== '47').m
     coordinates: feature.geometry.coordinates.filter((coordinates) => geoCentroid({ type: 'Polygon', coordinates })[1] >= 29),
   },
 }));
-const projection = geoMercator().fitExtent([[16, 16], [604, 544]], { type: 'FeatureCollection', features: mainland });
+const projection = geoMercator().fitExtent([[16, 16], [mapSize.width - 16, mapSize.height - 16]], { type: 'FeatureCollection', features: mainland });
 const mainlandPath = geoPath(projection).digits(1);
 const okinawa = features.find(({ properties }) => properties.code === '47');
 if (!okinawa || features.length !== total)
   throw new Error('Japan map must contain all 47 prefectures, including Okinawa.');
 // A prefecture-wide fit makes Okinawa Island disappear between distant islands.
-// Enlarge the largest island and disclose the inset's scope in the caption.
+// Display the largest island at a separate scale in the northwest corner.
 const okinawaMainIsland = okinawa.geometry.coordinates.toSorted((left, right) =>
   geoArea({ type: 'Polygon', coordinates: right }) - geoArea({ type: 'Polygon', coordinates: left }),
 )[0];
 if (!okinawaMainIsland)
   throw new Error('Okinawa Island geometry is required for the map inset.');
 const insetGeometry = { type: 'Polygon' as const, coordinates: okinawaMainIsland };
-const insetPath = geoPath(geoMercator().fitExtent([[142, 180], [240, 316]], insetGeometry)).digits(1);
+const insetFrame = { x: 16, y: 16, width: 236, height: 164, rx: 8 };
+const insetPath = geoPath(geoMercator().fitExtent([
+  [insetFrame.x + 122, insetFrame.y + 14],
+  [insetFrame.x + insetFrame.width - 16, insetFrame.y + insetFrame.height - 14],
+], insetGeometry)).digits(1);
+const insetLabelPosition = {
+  left: `${(insetFrame.x + 12) / mapSize.width * 100}%`,
+  top: `${(insetFrame.y + 13) / mapSize.height * 100}%`,
+};
 
 const prefectures = japanPrefectures.map((prefecture) => {
   const record = japanVisitRecords[prefecture.code];
@@ -47,9 +56,20 @@ const prefectures = japanPrefectures.map((prefecture) => {
     throw new Error(`Visit record conflicts with unvisited prefecture ${prefecture.code}.`);
   const count = prefecture.visited ? record?.visitCount ?? null : 0;
   const feature = mainland.find(({ properties }) => properties.code === prefecture.code);
+  const label = t(`japan-prefecture.${prefecture.code}`, prefecture.name.ko);
+  const regionLabel = t(`japan-region.${prefecture.region}`, prefecture.region);
+  const outlinedPolygons = [];
+  const smallIslands = [];
+  for (const coordinates of feature?.geometry.coordinates ?? []) {
+    // Below this area in the map's viewBox, the highlight can hide the fill.
+    const isSmall = mainlandPath.area({ type: 'Polygon', coordinates }) < 8;
+    (isSmall ? smallIslands : outlinedPolygons).push(coordinates);
+  }
   return {
     ...prefecture,
-    label: t(`japan-prefecture.${prefecture.code}`, prefecture.name.ko),
+    label,
+    regionLabel,
+    placeLabel: regionLabel === label ? label : `${regionLabel} · ${label}`,
     status: prefecture.visited ? 'visited' : 'unvisited',
     statusLabel: prefecture.visited ? t('japan-visits.visited', '방문') : t('japan-visits.unvisited', '미방문'),
     countLabel: count === null ? t('japan-visits.pending', '정리 예정') : t('japan-visits.count_value', '{count}회', { count }),
@@ -57,7 +77,8 @@ const prefectures = japanPrefectures.map((prefecture) => {
     activities: record?.activities[locale] ?? [],
     pending: prefecture.visited && (count === null || !record?.cities[locale].length || !record.activities[locale].length),
     blank: prefecture.visited ? t('japan-visits.pending', '정리 예정') : t('japan-visits.none', '기록 없음'),
-    path: prefecture.code === '47' ? insetPath(insetGeometry) : feature ? mainlandPath(feature) : null,
+    path: prefecture.code === '47' ? insetPath(insetGeometry) : mainlandPath({ type: 'MultiPolygon', coordinates: outlinedPolygons }),
+    islandPath: smallIslands.length ? mainlandPath({ type: 'MultiPolygon', coordinates: smallIslands }) : null,
   };
 });
 if (prefectures.some(({ path }) => !path))
@@ -80,38 +101,17 @@ if (prefectures.some(({ path }) => !path))
   </div>
   <progress class="visit-progress mt-3 mb-6 w-full" value={visited} max={total} aria-label={t('japan-visits.progress', '도도부현 방문율')}>{percent}%</progress>
 
-  <div class="mb-4 flex flex-wrap items-center justify-end gap-2" role="group" aria-label={t('japan-visits.filter', '방문 여부로 보기')}>
-    {[
-      { value: 'unvisited', label: t('japan-visits.unvisited', '미방문'), count: total - visited },
-      { value: 'visited', label: t('japan-visits.visited', '방문'), count: visited },
-      { value: 'all', label: t('japan-visits.all', '전체'), count: total },
-    ].map((filter) => (
-      <button
-        type="button"
-        class="filter-button rounded-full border border-border bg-background px-3 py-2 text-sm"
-        data-filter-value={filter.value}
-        data-testid={`japan-visits-filter-${filter.value}`}
-        aria-pressed={filter.value === 'all'}
-        disabled
-      >
-        {filter.label}<span class="ml-1.5 tabular-nums">{filter.count}</span>
-      </button>
-    ))}
-  </div>
-
   <div class="visit-explorer grid overflow-hidden rounded-2xl border border-border lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-    <figure class="visit-map relative min-w-0">
-      <div class="map-hover pointer-events-none absolute top-4 left-4 text-sm" data-map-hover aria-hidden="true"></div>
+    <figure class="visit-map min-w-0">
       <div class="map-canvas relative">
         <svg
           class="block h-auto w-full"
-          viewBox="0 0 620 560"
+          viewBox={`0 0 ${mapSize.width} ${mapSize.height}`}
           role="group"
-          aria-labelledby={`${id}-title`}
+          aria-label={t('japan-visits.title', '나의 일본 여행 지도')}
           aria-describedby={`${id}-description`}
           data-testid="japan-visits-map-svg"
         >
-          <title id={`${id}-title`}>{t('japan-visits.title', '나의 일본 여행 지도')}</title>
           <desc id={`${id}-description`}>{t('japan-visits.map_description', '방문 여부를 표시한 일본 지도', { visited, unvisited: total - visited })}</desc>
           <defs>
             <pattern id={`${id}-hatch`} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
@@ -119,44 +119,52 @@ if (prefectures.some(({ path }) => !path))
               <path d="M0 0V5" class="unvisited-hatch" />
             </pattern>
             {prefectures.map((prefecture) => (
-              <path id={`${id}-shape-${prefecture.code}`} d={prefecture.path} vector-effect="non-scaling-stroke" />
+              <>
+                <path id={`${id}-shape-${prefecture.code}`} d={prefecture.path} vector-effect="non-scaling-stroke" />
+                {prefecture.islandPath && <path id={`${id}-islands-${prefecture.code}`} d={prefecture.islandPath} vector-effect="non-scaling-stroke" />}
+                <clipPath id={`${id}-edge-${prefecture.code}`}>
+                  <use href={`#${id}-shape-${prefecture.code}`} />
+                </clipPath>
+              </>
             ))}
           </defs>
-          <rect x="20" y="166" width="236" height="164" rx="8" class="inset-boundary" aria-hidden="true" />
+          <rect {...insetFrame} class="inset-boundary" aria-hidden="true" />
           {prefectures.map((prefecture) => (
-            <a
-              href={`#${id}-record-${prefecture.code}`}
+            <g
               class="prefecture-shape"
+              role="button"
+              aria-pressed="false"
+              aria-disabled="true"
               data-select={prefecture.code}
               data-status={prefecture.status}
-              data-label={`${prefecture.label} · ${prefecture.statusLabel}`}
+              data-label={prefecture.placeLabel}
               data-testid={`japan-visits-prefecture-select-${prefecture.code}`}
-              aria-label={`${prefecture.label} · ${prefecture.statusLabel}`}
+              aria-label={`${prefecture.placeLabel} · ${prefecture.statusLabel}`}
             >
-              {prefecture.code === '47' && <rect class="inset-hitbox" x="20" y="166" width="236" height="164" rx="8" fill="transparent" aria-hidden="true" />}
+              {prefecture.code === '47' && <rect {...insetFrame} class="inset-hitbox" fill="transparent" aria-hidden="true" />}
               <use href={`#${id}-shape-${prefecture.code}`} class="prefecture-land" />
-              <use href={`#${id}-shape-${prefecture.code}`} class="prefecture-focus-halo" aria-hidden="true" />
-              <use href={`#${id}-shape-${prefecture.code}`} class="prefecture-focus-outline" aria-hidden="true" />
-            </a>
+              {prefecture.islandPath && <use href={`#${id}-islands-${prefecture.code}`} class="prefecture-land" />}
+              <use href={`#${id}-shape-${prefecture.code}`} class="prefecture-outline" clip-path={`url(#${id}-edge-${prefecture.code})`} aria-hidden="true" />
+            </g>
           ))}
         </svg>
-        <span class="inset-label pointer-events-none absolute leading-snug text-muted-foreground" aria-hidden="true">
+        <span class="inset-label pointer-events-none absolute leading-snug text-muted-foreground" style={insetLabelPosition} aria-hidden="true">
           <span class="block">{t('japan-prefecture.47', '오키나와')}</span>
           <span class="block">{t('japan-visits.inset_scale', '본섬 확대')}</span>
         </span>
+        <span class="map-hover absolute top-0 left-0 z-10 w-max max-w-[calc(50%-1.5rem)] rounded-md border border-border bg-background px-2.5 py-1 text-sm font-medium text-foreground" data-map-hover aria-hidden="true" hidden></span>
       </div>
       <figcaption class="px-4 pb-4 text-xs leading-relaxed text-muted-foreground">
-        <span class="mb-2 flex flex-wrap gap-x-4 gap-y-1">
+        <span class="flex flex-wrap gap-x-4 gap-y-1">
           <span class="inline-flex items-center gap-1.5"><span class="legend-dot legend-visited" aria-hidden="true"></span>{t('japan-visits.visited', '방문')}</span>
           <span class="inline-flex items-center gap-1.5"><span class="legend-dot legend-unvisited" aria-hidden="true"></span>{t('japan-visits.unvisited', '미방문')}</span>
         </span>
-        {t('japan-visits.map_note', '경계를 단순화하고 일부 섬은 생략했습니다. 오키나와는 본섬을 확대해 표시했습니다.')}
       </figcaption>
     </figure>
 
-    <div class="visit-detail min-w-0 border-t border-border bg-background p-5 lg:border-t-0 lg:border-l lg:p-6">
+    <div class="visit-detail flex min-w-0 flex-col border-t border-border bg-background p-5 lg:border-t-0 lg:border-l lg:p-6">
       <label for={`${id}-select`} class="mb-2 block text-xs font-medium text-muted-foreground">{t('japan-visits.choose', '현 선택')}</label>
-      <select id={`${id}-select`} class="prefecture-select w-full rounded-lg border border-input bg-background p-2.5 text-sm" data-testid="japan-visits-prefecture-select" disabled>
+      <select id={`${id}-select`} class="prefecture-select w-full scroll-mt-24 rounded-lg border border-input bg-background p-2.5 text-sm" data-testid="japan-visits-prefecture-select" disabled>
         <option value="">{t('japan-visits.choose_placeholder', '궁금한 도도부현을 골라보세요')}</option>
         {regions.map((region) => (
           <optgroup label={t(`japan-region.${region}`, region)}>
@@ -168,12 +176,12 @@ if (prefectures.some(({ path }) => !path))
       </select>
       <div class="mt-7" data-prompt>
         <h3 class="m-0! text-xl! font-semibold">{t('japan-visits.prompt_title', '어디부터 볼까요?')}</h3>
-        <p class="mt-3! text-sm leading-relaxed text-muted-foreground">{t('japan-visits.prompt', '지도나 선택 목록에서 한 곳을 골라보세요.')}</p>
+        <p class="mt-3! whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{t('japan-visits.prompt', '지도나 선택 목록에서 한 곳을 골라보세요.\n그곳에서의 여행 기록을 여기에 모읍니다.')}</p>
       </div>
       <div data-records>
         {prefectures.map((prefecture) => (
           <article class="prefecture-record mt-6" data-record={prefecture.code} hidden>
-            <p class="text-xs font-medium text-muted-foreground">{t(`japan-region.${prefecture.region}`, prefecture.region)} · {prefecture.statusLabel}</p>
+            <p class="text-xs font-medium text-muted-foreground">{prefecture.regionLabel} · {prefecture.statusLabel}</p>
             <h3 class="mt-2! mb-0! text-2xl! font-semibold" data-record-title>{prefecture.label}</h3>
             {locale !== 'jp' && <p class="mt-1! text-sm text-muted-foreground" lang="ja">{prefecture.name.jp}</p>}
             <dl class="record-fields mt-6! space-y-5 text-sm">
@@ -187,7 +195,7 @@ if (prefectures.some(({ path }) => !path))
               </div>
               <div>
                 <dt class="text-xs text-muted-foreground">{t('japan-visits.activities', '했던 일')}</dt>
-                <dd class="mt-1">
+                <dd class="mt-1 whitespace-pre-line">
                   {prefecture.activities.length ? <ul>{prefecture.activities.map((activity) => <li>{activity}</li>)}</ul> : prefecture.blank}
                 </dd>
               </div>
@@ -200,13 +208,30 @@ if (prefectures.some(({ path }) => !path))
           </article>
         ))}
       </div>
+      <div class="mt-auto flex flex-wrap items-center justify-end gap-2 pt-6" role="group" aria-label={t('japan-visits.filter', '방문 여부로 보기')}>
+        {[
+          { value: 'unvisited', label: t('japan-visits.unvisited', '미방문'), count: total - visited },
+          { value: 'visited', label: t('japan-visits.visited', '방문'), count: visited },
+          { value: 'all', label: t('japan-visits.all', '전체'), count: total },
+        ].map((filter) => (
+          <button
+            type="button"
+            class="filter-button rounded-full border border-border bg-background px-3 py-2 text-sm"
+            data-filter-value={filter.value}
+            data-testid={`japan-visits-filter-${filter.value}`}
+            aria-pressed={filter.value === 'all'}
+            disabled
+          >
+            {filter.label}<span class="ml-1.5 tabular-nums">{filter.count}</span>
+          </button>
+        ))}
+      </div>
     </div>
   </div>
-  <p class="mt-3! text-xs text-muted-foreground">{t('japan-visits.hint', '지도에서 현을 누르거나 선택 목록에서 골라보세요.')}</p>
   <p class="sr-only" role="status" data-announcement></p>
 
   <h2 class="mt-12! mb-8!">{t('japan-visits.records', '현별 기록')}</h2>
-  <p class="mb-5! text-sm text-muted-foreground">{t('japan-visits.records_hint', '지역을 펼치면 전체 기록을 볼 수 있습니다.')}</p>
+  <p class="mb-5! whitespace-pre-line text-sm text-muted-foreground">{t('japan-visits.records_hint', '지역을 펼치면 전체 기록을 볼 수 있습니다.')}</p>
   <div class="region-records grid gap-4">
     {regions.map((region) => {
       const entries = prefectures.filter((prefecture) => prefecture.region === region)
@@ -230,20 +255,19 @@ if (prefectures.some(({ path }) => !path))
               </thead>
               <tbody>
                 {entries.map((prefecture) => (
-                  <tr id={`${id}-record-${prefecture.code}`} data-row data-status={prefecture.status}>
+                  <tr data-row data-status={prefecture.status}>
                     <th scope="row">
-                      <a href={`#${id}-select`} class="record-link inline-block rounded-md border border-border px-2 py-1.5" data-select={prefecture.code} data-status={prefecture.status} data-testid={`japan-visits-record-select-${prefecture.code}`}>{prefecture.label}</a>
+                      <span class="font-medium">{prefecture.label}</span>
                       <span class="mt-1 block text-xs font-normal text-muted-foreground">{prefecture.statusLabel}</span>
                     </th>
                     <td>{prefecture.countLabel}</td>
                     <td>{prefecture.cities.length ? prefecture.cities.join(', ') : prefecture.blank}</td>
-                    <td>{prefecture.activities.length ? prefecture.activities.join(' · ') : prefecture.blank}</td>
+                    <td class="whitespace-pre-line">{prefecture.activities.length ? prefecture.activities.join('\n') : prefecture.blank}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p class="px-4 pt-3 pb-4 text-sm text-muted-foreground" data-empty hidden>{t('japan-visits.empty', '이 지역에는 선택한 조건에 맞는 현이 없습니다.')}</p>
         </details>
       );
     })}
@@ -255,20 +279,43 @@ if (prefectures.some(({ path }) => !path))
 
 <script>
   class JapanPrefectureVisits extends HTMLElement {
+    private dismissHint = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        const hint = this.querySelector<HTMLElement>('[data-map-hover]');
+        if (hint)
+          hint.hidden = true;
+      }
+    };
+
+    disconnectedCallback() {
+      this.ownerDocument.removeEventListener('keydown', this.dismissHint);
+    }
+
     connectedCallback() {
+      this.ownerDocument.addEventListener('keydown', this.dismissHint);
       if (this.dataset.ready)
         return;
-      this.dataset.ready = 'true';
 
       const select = this.querySelector<HTMLSelectElement>('select');
       const announcement = this.querySelector<HTMLElement>('[data-announcement]');
       const hover = this.querySelector<HTMLElement>('[data-map-hover]');
+      const map = this.querySelector<HTMLElement>('.map-canvas');
       const filters = this.querySelectorAll<HTMLButtonElement>('[data-filter-value]');
-      const shapes = this.querySelectorAll<SVGAElement>('.prefecture-shape');
+      const shapes = this.querySelectorAll<SVGGElement>('.prefecture-shape');
       const records = this.querySelectorAll<HTMLElement>('[data-record]');
       const prompt = this.querySelector<HTMLElement>('[data-prompt]');
-      if (!select || !announcement || !hover || !prompt)
+      if (!select || !announcement || !hover || !map || !prompt)
         return;
+
+      let hoveredShape: SVGGElement | null = null;
+      const clearHover = () => {
+        hoveredShape = null;
+        hover.hidden = true;
+      };
+      const shapeFrom = (target: EventTarget | null) => {
+        const shape = target instanceof Element ? target.closest<SVGGElement>('.prefecture-shape') : null;
+        return shape?.getAttribute('aria-disabled') === 'false' ? shape : null;
+      };
 
       const showRecord = (code: string) => {
         const record = [...records].find((entry) => entry.dataset.record === code);
@@ -278,10 +325,7 @@ if (prefectures.some(({ path }) => !path))
           entry.hidden = entry !== record;
         });
         shapes.forEach((shape) => {
-          if (shape.dataset.select === code)
-            shape.setAttribute('aria-current', 'true');
-          else
-            shape.removeAttribute('aria-current');
+          shape.setAttribute('aria-pressed', String(shape.dataset.select === code));
         });
         if (record)
           announcement.textContent = `${record.querySelector('[data-record-title]')?.textContent} · ${record.querySelector('[data-record-count]')?.textContent}`;
@@ -304,22 +348,18 @@ if (prefectures.some(({ path }) => !path))
           option.hidden = excluded;
           option.disabled = excluded;
         }
-        this.querySelectorAll<HTMLElement>('[data-row]').forEach((row) => {
-          row.hidden = value !== 'all' && row.dataset.status !== value;
-        });
-        this.querySelectorAll<HTMLElement>('[data-region]').forEach((region) => {
-          const hasRows = [...region.querySelectorAll<HTMLElement>('[data-row]')].some((row) => !row.hidden);
-          const table = region.querySelector<HTMLElement>('[data-testid^="japan-visits-table"]');
-          const empty = region.querySelector<HTMLElement>('[data-empty]');
-          if (table)
-            table.hidden = !hasRows;
-          if (empty)
-            empty.hidden = hasRows;
-        });
         if (select.selectedOptions[0]?.disabled)
           showRecord('');
-        hover.textContent = '';
+        clearHover();
         announcement.textContent = this.dataset.showing?.replace('{count}', String(visible)) ?? '';
+      };
+
+      const selectShape = (shape: SVGGElement) => {
+        showRecord(shape.dataset.select ?? '');
+        hover.hidden = true;
+        // On narrow layouts the detail panel sits below the map.
+        if (select.getBoundingClientRect().top >= map.getBoundingClientRect().bottom)
+          select.scrollIntoView({ block: 'start', behavior: 'instant' });
       };
 
       this.addEventListener('click', (event: MouseEvent) => {
@@ -330,35 +370,69 @@ if (prefectures.some(({ path }) => !path))
           applyFilter(filter.dataset.filterValue ?? 'all');
           return;
         }
-        const target = event.target.closest<HTMLElement | SVGAElement>('[data-select]');
-        if (!target || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
-          return;
-        event.preventDefault();
-        if (target.getAttribute('aria-disabled') === 'true')
-          return;
-        showRecord(target.dataset.select ?? '');
-        if (target.classList.contains('record-link')) {
-          select.scrollIntoView({ block: 'center', behavior: 'instant' });
-          select.focus({ preventScroll: true });
-        }
+        const shape = shapeFrom(event.target);
+        if (shape)
+          selectShape(shape);
       });
       select.addEventListener('change', () => showRecord(select.value));
-      const showHover = (target: EventTarget | null) => {
-        if (!(target instanceof Element))
-          return;
-        const shape = target.closest<SVGAElement>('.prefecture-shape');
-        if (shape && shape.getAttribute('aria-disabled') !== 'true')
-          hover.textContent = shape.dataset.label ?? '';
+      map.addEventListener('keydown', (event) => {
+        const shape = shapeFrom(event.target);
+        if (shape && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          if (!event.repeat)
+            selectShape(shape);
+        }
+      });
+
+      const showHover = (shape: SVGGElement, clientX: number, clientY: number) => {
+        const bounds = map.getBoundingClientRect();
+        const x = clientX - bounds.left;
+        const y = clientY - bounds.top;
+        const gap = 16;
+        const padding = 6;
+        hover.textContent = shape.dataset.label ?? '';
+        hover.hidden = false;
+        const width = hover.offsetWidth;
+        const height = hover.offsetHeight;
+        const left = x + gap + width > bounds.width - padding;
+        hover.dataset.side = left ? 'left' : 'right';
+        const offsetX = Math.max(padding, Math.min(left ? x - gap - width : x + gap, bounds.width - width - padding));
+        const offsetY = Math.max(padding, Math.min(y - height / 2, bounds.height - height - padding));
+        hover.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
       };
-      this.addEventListener('pointerover', (event: PointerEvent) => showHover(event.target));
-      this.addEventListener('focusin', (event: FocusEvent) => showHover(event.target));
-      this.querySelector('svg')?.addEventListener('pointerleave', () => {
-        hover.textContent = '';
+      map.addEventListener('pointerover', (event) => {
+        if (event.pointerType === 'touch' || (event.target instanceof Node && hover.contains(event.target)))
+          return;
+        const shape = shapeFrom(event.target);
+        if (shape === hoveredShape)
+          return;
+        hoveredShape = shape;
+        if (shape)
+          showHover(shape, event.clientX, event.clientY);
+        else
+          clearHover();
+      });
+      map.addEventListener('pointerleave', clearHover);
+      map.addEventListener('focusin', (event) => {
+        const shape = shapeFrom(event.target);
+        if (shape?.matches(':focus-visible')) {
+          const bounds = shape.getBoundingClientRect();
+          showHover(shape, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+        }
+      });
+      map.addEventListener('focusout', (event) => {
+        if (shapeFrom(event.target))
+          clearHover();
+      });
+      shapes.forEach((shape) => {
+        shape.setAttribute('tabindex', '0');
+        shape.setAttribute('aria-disabled', 'false');
       });
       filters.forEach((button) => {
         button.disabled = false;
       });
       select.disabled = false;
+      this.dataset.ready = 'true';
     }
   }
 
@@ -397,23 +471,25 @@ if (prefectures.some(({ path }) => !path))
   .filter-button[aria-pressed='true'] { background: hsl(var(--foreground)); color: hsl(var(--background)); border-color: hsl(var(--foreground)); }
   .filter-button:disabled, .prefecture-select:disabled { cursor: wait; }
   .visit-map { background: var(--sea-color); }
-  .map-hover { min-height: 1.5rem; color: hsl(var(--foreground)); font-weight: 600; }
+  /* Keep the name visible while the pointer crosses the gap to read it. */
+  .map-hover::before { content: ''; position: absolute; inset-block: 0; width: 14px; }
+  .map-hover[data-side='right']::before { right: 100%; }
+  .map-hover[data-side='left']::before { left: 100%; }
   .prefecture-shape { cursor: pointer; }
   .prefecture-land { fill: var(--visited-color); stroke: var(--sea-color); stroke-width: 0.8; transition: opacity 140ms ease-out; }
   .prefecture-shape[data-status='unvisited'] .prefecture-land { fill: var(--unvisited-fill); stroke: var(--unvisited-outline); }
-  .prefecture-shape:hover .prefecture-land { stroke: hsl(var(--foreground)); stroke-width: 1.4; }
-  .prefecture-focus-halo, .prefecture-focus-outline { display: none; fill: none; pointer-events: none; }
-  .prefecture-focus-halo { stroke: var(--sea-color); stroke-width: 6; }
-  .prefecture-focus-outline { stroke: hsl(var(--foreground)); stroke-width: 2.5; }
-  .prefecture-shape:is(:focus-visible, [aria-current='true']) :is(.prefecture-focus-halo, .prefecture-focus-outline) { display: inline; }
-  /* The geographic contour replaces the rectangular SVG link focus ring. */
+  .prefecture-outline { display: none; fill: none; pointer-events: none; stroke: hsl(var(--foreground)); stroke-width: 2.5; stroke-linejoin: round; }
+  .prefecture-shape:hover .prefecture-outline { display: inline; opacity: 0.65; }
+  .prefecture-shape[aria-pressed='true'] .prefecture-outline { display: inline; opacity: 1; }
+  .prefecture-shape:focus-visible .prefecture-outline { display: inline; opacity: 1; stroke-width: 4; }
+  /* The geographic contour replaces the rectangular focus ring. */
   .japan-visits .prefecture-shape:focus { outline: none; }
   .prefecture-shape.is-muted { pointer-events: none; }
   .prefecture-shape.is-muted .prefecture-land { opacity: 0.15; }
   .unvisited-base { fill: var(--unvisited-color); }
   .unvisited-hatch { stroke: var(--hatch-color); stroke-width: 1; }
   .inset-boundary { fill: var(--inset-color); stroke: var(--unvisited-outline); stroke-width: 0.8; }
-  .inset-label { top: 32%; left: 5.1%; width: 17%; font-size: var(--type-caption, 0.8125rem); }
+  .inset-label { width: 17%; font-size: var(--type-caption, 0.8125rem); }
   .inset-label span:first-child { color: hsl(var(--foreground)); font-weight: 600; }
   .legend-dot { width: 0.7rem; height: 0.7rem; display: inline-block; border-radius: 2px; }
   .legend-visited { background: var(--visited-color); }
@@ -431,20 +507,17 @@ if (prefectures.some(({ path }) => !path))
   .record-table tbody tr { background: transparent; }
   .record-table tbody tr:nth-child(even) { background: hsl(var(--muted) / 0.35); }
   .record-table tbody tr[data-status='unvisited'] { color: hsl(var(--muted-foreground)); opacity: 0.5; }
-  .record-table tbody tr[data-status='unvisited'] .record-link { color: inherit; font-weight: 400; }
   .record-table tbody tr[data-status='unvisited']:is(:hover, :focus-within) { opacity: 1; }
   .record-table th:first-child { width: 25%; }
-  .record-link { color: hsl(var(--foreground)); text-decoration: none; }
   .japan-visits :is(button, select, summary, a, [tabindex]):not(.prefecture-shape):focus-visible { outline: 2px solid hsl(var(--foreground)); outline-offset: 3px; }
   .japan-visits .region-record > :is(summary, .record-table):focus-visible { outline-offset: -4px; }
   @media (pointer: coarse) {
-    .filter-button, .prefecture-select, .record-link { min-height: 2.75rem; }
+    .filter-button, .prefecture-select { min-height: 2.75rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     .filter-button, .prefecture-land { transition: none; }
   }
   @media (forced-colors: active) {
-    .prefecture-focus-halo { stroke: Canvas; }
-    .prefecture-focus-outline { stroke: Highlight; }
+    .prefecture-outline { stroke: Highlight; }
   }
 </style>
