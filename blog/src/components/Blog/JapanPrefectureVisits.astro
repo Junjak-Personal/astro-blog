@@ -1,5 +1,7 @@
 ---
 import { geoArea, geoCentroid, geoMercator, geoPath } from 'd3';
+import JapanPrefectureSelect from '@/components/Blog/JapanPrefectureSelect';
+import { Icon } from '@/components/ui/icon';
 import geography from '@/data/japanPrefectures.geo.json';
 import { japanPrefectures, japanVisitRecords } from '@/data/japanPrefectureVisits';
 import { createTranslator, getLocaleFromUrl } from '@/i18n';
@@ -83,6 +85,13 @@ const prefectures = japanPrefectures.map((prefecture) => {
 });
 if (prefectures.some(({ path }) => !path))
   throw new Error('Every prefecture must have a visible map path.');
+
+const selectId = `${id}-select`;
+const selectGroups = regions.map((region) => ({
+  region,
+  label: t(`japan-region.${region}`, region),
+  options: prefectures.filter((prefecture) => prefecture.region === region).map(({ code, label, visited }) => ({ code, label, visited })),
+}));
 ---
 
 <japan-prefecture-visits
@@ -163,20 +172,19 @@ if (prefectures.some(({ path }) => !path))
     </figure>
 
     <div class="visit-detail flex min-w-0 flex-col border-t border-border bg-background p-5 lg:border-t-0 lg:border-l lg:p-6">
-      <label for={`${id}-select`} class="mb-2 block text-xs font-medium text-muted-foreground">{t('japan-visits.choose', '현 선택')}</label>
-      <select id={`${id}-select`} class="prefecture-select w-full scroll-mt-24 rounded-lg border border-input bg-background p-2.5 text-sm" data-testid="japan-visits-prefecture-select" disabled>
-        <option value="">{t('japan-visits.choose_placeholder', '궁금한 도도부현을 골라보세요')}</option>
-        {regions.map((region) => (
-          <optgroup label={t(`japan-region.${region}`, region)}>
-            {prefectures.filter((prefecture) => prefecture.region === region).map((prefecture) => (
-              <option value={prefecture.code} data-status={prefecture.status}>{prefecture.label}</option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
-      <div class="mt-7" data-prompt>
-        <h3 class="m-0! text-xl! font-semibold">{t('japan-visits.prompt_title', '어디부터 볼까요?')}</h3>
-        <p class="mt-3! whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{t('japan-visits.prompt', '지도나 선택 목록에서 한 곳을 골라보세요.\n그곳에서의 여행 기록을 여기에 모읍니다.')}</p>
+      <div class="scroll-mt-24" data-prefecture-picker>
+        <label id={`${selectId}-label`} for={selectId} class="mb-2 block text-xs font-medium text-muted-foreground">{t('japan-visits.choose', '현 선택')}</label>
+        <JapanPrefectureSelect
+          client:load
+          id={selectId}
+          placeholder={t('japan-visits.choose_placeholder', '도도부현 선택')}
+          clearLabel={t('japan-visits.clear_selection', '선택 해제')}
+          groups={selectGroups}
+        />
+      </div>
+      <div class="py-10 text-center text-muted-foreground" data-prompt>
+        <Icon icon="material-symbols:article-outline" ssr aria-hidden="true" className="mx-auto mb-3 size-7" />
+        <p class="whitespace-pre-line text-sm leading-relaxed">{t('japan-visits.prompt', '지도나 선택 목록에서\n도도부현을 선택해주세요.')}</p>
       </div>
       <div data-records>
         {prefectures.map((prefecture) => (
@@ -296,7 +304,7 @@ if (prefectures.some(({ path }) => !path))
       if (this.dataset.ready)
         return;
 
-      const select = this.querySelector<HTMLSelectElement>('select');
+      const picker = this.querySelector<HTMLElement>('[data-prefecture-picker]');
       const announcement = this.querySelector<HTMLElement>('[data-announcement]');
       const hover = this.querySelector<HTMLElement>('[data-map-hover]');
       const map = this.querySelector<HTMLElement>('.map-canvas');
@@ -304,7 +312,7 @@ if (prefectures.some(({ path }) => !path))
       const shapes = this.querySelectorAll<SVGGElement>('.prefecture-shape');
       const records = this.querySelectorAll<HTMLElement>('[data-record]');
       const prompt = this.querySelector<HTMLElement>('[data-prompt]');
-      if (!select || !announcement || !hover || !map || !prompt)
+      if (!picker || !announcement || !hover || !map || !prompt)
         return;
 
       let hoveredShape: SVGGElement | null = null;
@@ -319,7 +327,7 @@ if (prefectures.some(({ path }) => !path))
 
       const showRecord = (code: string) => {
         const record = [...records].find((entry) => entry.dataset.record === code);
-        select.value = record ? code : '';
+        this.dataset.selected = record ? code : '';
         prompt.hidden = Boolean(record);
         records.forEach((entry) => {
           entry.hidden = entry !== record;
@@ -343,12 +351,8 @@ if (prefectures.some(({ path }) => !path))
             visible++;
         });
         filters.forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.filterValue === value)));
-        for (const option of select.options) {
-          const excluded = Boolean(option.value) && value !== 'all' && option.dataset.status !== value;
-          option.hidden = excluded;
-          option.disabled = excluded;
-        }
-        if (select.selectedOptions[0]?.disabled)
+        const selected = [...shapes].find((shape) => shape.dataset.select === this.dataset.selected);
+        if (selected?.getAttribute('aria-disabled') === 'true')
           showRecord('');
         clearHover();
         announcement.textContent = this.dataset.showing?.replace('{count}', String(visible)) ?? '';
@@ -358,8 +362,8 @@ if (prefectures.some(({ path }) => !path))
         showRecord(shape.dataset.select ?? '');
         hover.hidden = true;
         // On narrow layouts the detail panel sits below the map.
-        if (select.getBoundingClientRect().top >= map.getBoundingClientRect().bottom)
-          select.scrollIntoView({ block: 'start', behavior: 'instant' });
+        if (picker.getBoundingClientRect().top >= map.getBoundingClientRect().bottom)
+          picker.scrollIntoView({ block: 'start', behavior: 'instant' });
       };
 
       this.addEventListener('click', (event: MouseEvent) => {
@@ -374,7 +378,13 @@ if (prefectures.some(({ path }) => !path))
         if (shape)
           selectShape(shape);
       });
-      select.addEventListener('change', () => showRecord(select.value));
+      this.addEventListener('prefecture-change', (event) => {
+        if (!(event instanceof CustomEvent) || typeof event.detail !== 'string')
+          return;
+        const code = event.detail;
+        if (!code || [...shapes].some((shape) => shape.dataset.select === code && shapeFrom(shape)))
+          showRecord(code);
+      });
       map.addEventListener('keydown', (event) => {
         const shape = shapeFrom(event.target);
         if (shape && (event.key === 'Enter' || event.key === ' ')) {
@@ -431,7 +441,6 @@ if (prefectures.some(({ path }) => !path))
       filters.forEach((button) => {
         button.disabled = false;
       });
-      select.disabled = false;
       this.dataset.ready = 'true';
     }
   }
@@ -469,7 +478,7 @@ if (prefectures.some(({ path }) => !path))
   .visit-progress::-moz-progress-bar { background: var(--visited-color); }
   .filter-button { cursor: pointer; transition: background-color 140ms ease-out; }
   .filter-button[aria-pressed='true'] { background: hsl(var(--foreground)); color: hsl(var(--background)); border-color: hsl(var(--foreground)); }
-  .filter-button:disabled, .prefecture-select:disabled { cursor: wait; }
+  .filter-button:disabled { cursor: wait; }
   .visit-map { background: var(--sea-color); }
   /* Keep the name visible while the pointer crosses the gap to read it. */
   .map-hover::before { content: ''; position: absolute; inset-block: 0; width: 14px; }
@@ -512,7 +521,7 @@ if (prefectures.some(({ path }) => !path))
   .japan-visits :is(button, select, summary, a, [tabindex]):not(.prefecture-shape):focus-visible { outline: 2px solid hsl(var(--foreground)); outline-offset: 3px; }
   .japan-visits .region-record > :is(summary, .record-table):focus-visible { outline-offset: -4px; }
   @media (pointer: coarse) {
-    .filter-button, .prefecture-select { min-height: 2.75rem; }
+    .filter-button { min-height: 2.75rem; }
   }
   @media (prefers-reduced-motion: reduce) {
     .filter-button, .prefecture-land { transition: none; }
